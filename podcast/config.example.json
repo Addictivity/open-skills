@@ -1,0 +1,125 @@
+{
+  "_comment": "Copy to ~/.config/podcast-skills/config.json and replace every value. API keys never go here: put them in the file named by paths.env_file. Scripts look for --config, then $PODCAST_CONFIG, then the path above.",
+
+  "show": {
+    "name": "Example Show",
+    "slug": "example-show",
+    "tagline": "Long conversations with people who run small coffee roasters.",
+    "audience": "independent coffee shop owners",
+    "host": "Sam Host",
+    "host_first_name": "Sam",
+    "host_linkedin": "https://www.linkedin.com/in/your-handle/",
+    "publisher": "Your Company",
+    "publisher_url": "https://example.com",
+    "language": "en-GB",
+    "hashtag": "#exampleshow"
+  },
+
+  "voice": {
+    "spelling": "British English",
+    "rules": [
+      "No em dashes.",
+      "Numbers over adjectives: '20 years roasting' beats 'extensive experience'.",
+      "Named things over generic ones: use the real award, tool or company name."
+    ],
+    "banned_words": []
+  },
+
+  "glossary": {
+    "_comment": "Wrong spelling on the left, right spelling on the right. Speech-to-text gets names wrong, so skills apply this everywhere.",
+    "Fernhil": "Fernhill"
+  },
+
+  "brand": {
+    "colours": {
+      "thumbnail_background": "#090909",
+      "thumbnail_strip": "#0A0915",
+      "thumbnail_highlight": "#2A9D8F",
+      "thumbnail_text": "#FFFFFF",
+      "short_accent": "#F0E23A",
+      "short_main": "#F5EFE1",
+      "short_caption_future": "#B5B5B5",
+      "short_caption_read": "#FFFFFF",
+      "short_caption_pill": "#071647"
+    },
+    "fonts": {
+      "thumbnail": "Sora",
+      "short_accent": "DM Sans",
+      "short_main": "Gelasio",
+      "short_caption": "DM Sans"
+    },
+    "font_files": {
+      "_comment": "Family name to font file, for fonts the pack does not bundle. Example: \"My Font\": \"~/Fonts/MyFont.ttf\". You must hold the licence for anything you add."
+    },
+    "assets": {
+      "thumbnail_background_image": null,
+      "host_cutout": null,
+      "show_badge": null
+    }
+  },
+
+  "paths": {
+    "episodes_root": "~/Podcast/Episodes",
+    "media_archive": "/Volumes/YourDrive/Podcast",
+    "env_file": "~/.config/podcast-skills/.env",
+    "google_client_secret": "~/.config/podcast-skills/youtube-client-secret.json",
+    "tokens_dir": "~/.config/podcast-skills/tokens"
+  },
+
+  "site": {
+    "enabled": false,
+    "base_url": "https://example.com",
+    "index_path": "/podcast",
+    "episode_path": "/podcast/{slug}",
+    "repo": null,
+    "episode_file": "content/podcast/{slug}.mdx",
+    "short_embed": "<YouTubeShort id=\"{id}\" />"
+  },
+
+  "publishing": {
+    "youtube": {
+      "enabled": true,
+      "channel_id": "",
+      "privacy": "unlisted",
+      "category_id": "22",
+      "tags": ["podcast", "example show", "coffee"],
+      "short_hashtags": "#Shorts #Podcast",
+      "host_cta_block": [
+        "━━━━━━━━━━━━━━━━━━━━",
+        "ABOUT EXAMPLE SHOW",
+        "One or two sentences on what the show is and who it is for.",
+        "",
+        "🔔 Subscribe: https://www.youtube.com/@your-channel",
+        "🎙 Episodes and transcripts: https://example.com/podcast",
+        "",
+        "CONNECT WITH SAM",
+        "LinkedIn: https://www.linkedin.com/in/your-handle/",
+        "",
+        "GOT A STORY WORTH TELLING?",
+        "How a guest can get in touch.",
+        "━━━━━━━━━━━━━━━━━━━━"
+      ]
+    },
+    "linkedin": {
+      "_comment": "mode: paste-pack writes captions for you to post by hand (no account needed). ghl pushes drafts to GoHighLevel. off skips LinkedIn.",
+      "mode": "paste-pack",
+      "post_days": ["Mon", "Thu"],
+      "post_time": "14:00",
+      "timezone": "Europe/London",
+      "account_name_match": ""
+    }
+  },
+
+  "transcription": {
+    "model": "universal-2",
+    "language_code": "en",
+    "cost_per_hour_usd": 0.20,
+    "cost_cap_usd": 1.50,
+    "whisper_model": "small.en"
+  },
+
+  "guest_comms": {
+    "asset_pack_dir": "~/Podcast/Guest assets",
+    "email_signoff": "Sam"
+  }
+}

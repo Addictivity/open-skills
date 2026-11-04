@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{COMP_ID}}</title>
+  <style>
+    /* Fonts are bundled beside the composition so renders do not depend on what is
+       installed, and lint blocks a render when a font has no @font-face. */
+    {{FONT_FACES}}
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #000; overflow: hidden; }
+
+    #{{COMP_ID}} {
+      width: 1080px;
+      height: 1920px;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #bg-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    /* === TYPOGRAPHIC BEAT LAYER: true vertical centre, lines hug tight === */
+    .beat-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .beat {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      padding: 0 50px;
+      pointer-events: none;
+    }
+
+    .beat-line {
+      position: relative;
+      opacity: 0;
+      transform: translateY(80px);
+      max-width: 1000px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .beat-accent {
+      font-family: '{{FONT_ACCENT}}', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 700;
+      font-size: 78px;
+      line-height: 1.0;
+      color: {{COLOUR_ACCENT}};
+      letter-spacing: -1.5px;
+      margin-bottom: -150px; /* accent sits inside the main's cap height; refined by measurement below */
+      z-index: 3; /* accent reads in front of the big word */
+    }
+
+    .beat-main {
+      font-family: '{{FONT_MAIN}}', Georgia, 'Times New Roman', serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 400px; /* the big word is the poster */
+      line-height: 0.92;
+      color: {{COLOUR_MAIN}};
+      letter-spacing: -6px;
+      z-index: 2;
+    }
+
+    .line-text, .line-ghost {
+      display: inline-block;
+    }
+
+    /* Ghost trail to the right: a persistent motion-blur leftover */
+    .line-ghost {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      transform: translateX(18px);
+      filter: blur(10px);
+      opacity: 0.45;
+      pointer-events: none;
+      color: inherit;
+    }
+
+    .line-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* === KARAOKE CAPTION LAYER === */
+    .caption-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 260px;
+      height: 220px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .caption-group {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 4px 2px;
+      padding: 0 60px;
+      opacity: 0;
+    }
+
+    .word {
+      display: inline-block;
+      font-family: '{{FONT_CAPTION}}', 'Helvetica Neue', -apple-system, system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 60px;
+      line-height: 1.15;
+      color: {{COLOUR_CAPTION_FUTURE}};
+      text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 4px 8px;
+      border-radius: 8px;
+      background-color: transparent;
+      white-space: nowrap;
+    }
+
+    .word.read {
+      color: {{COLOUR_CAPTION_READ}};
+    }
+
+    .word.active {
+      color: {{COLOUR_CAPTION_READ}};
+      background-color: {{COLOUR_CAPTION_PILL}};
+    }
+
+    /* === FADE TO BLACK AT END === */
+    .fade-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="{{COMP_ID}}" data-composition-id="{{COMP_ID}}" data-start="0" data-duration="{{DURATION}}" data-width="1080" data-height="1920">
+
+    <video id="bg-video"
+           src="clip.mov"
+           data-start="0"
+           data-duration="{{DURATION}}"
+           data-track-index="0"
+           muted
+           playsinline></video>
+
+    <audio id="bg-audio"
+           src="clip.mov"
+           data-start="0"
+           data-duration="{{DURATION}}"
+           data-track-index="1"
+           data-volume="1"></audio>
+
+    <div class="beat-container" id="beat-container"></div>
+    <div class="caption-container" id="caption-container"></div>
+    <div class="fade-overlay" id="fade-overlay"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      var COMP_ID = "{{COMP_ID}}";
+      var FONT_MAIN = "{{FONT_MAIN}}";
+      var BEATS = {{BEATS_JSON}};
+      var WORDS = {{WORDS_JSON}};
+      var CLIP_DURATION = {{DURATION}};
+      var FADE_DUR = {{FADE_DUR}};
+
+      // === MAIN LINE NORMALISATION ===
+      // The big main line renders all lowercase. Only all-caps acronym tokens
+      // (2+ letters, all uppercase: AI, CEO) keep their capitals. build-compositions.js
+      // already writes normalised beats. This guards hand-edited compositions.
+      function normaliseMain(main) {
+        return String(main).split(/(\s+)/).map(function (tok) {
+          var letters = tok.replace(/[^a-zA-Z]/g, '');
+          if (letters.length >= 2 && letters === letters.toUpperCase()) return tok;
+          return tok.toLowerCase();
+        }).join('');
+      }
+      BEATS.forEach(function (beat) { beat.main = normaliseMain(beat.main); });
+
+      // === BUILD BEATS: each line has text and a ghost trail ===
+      function buildLine(role, text) {
+        var line = document.createElement('div');
+        line.className = 'beat-line beat-' + role;
+        var inner = document.createElement('span');
+        inner.className = 'line-text';
+        inner.textContent = text;
+        var ghost = document.createElement('span');
+        ghost.className = 'line-ghost';
+        ghost.textContent = text;
+        ghost.setAttribute('aria-hidden', 'true');
+        line.appendChild(inner);
+        line.appendChild(ghost);
+        return line;
+      }
+
+      var beatContainer = document.getElementById('beat-container');
+      BEATS.forEach(function (beat, bi) {
+        var beatEl = document.createElement('div');
+        beatEl.className = 'beat';
+        beatEl.id = 'beat-' + bi;
+        var accentLine = buildLine('accent', beat.accent);
+        accentLine.id = 'beat-' + bi + '-accent';
+        var mainLine = buildLine('main', beat.main);
+        mainLine.id = 'beat-' + bi + '-main';
+        beatEl.appendChild(accentLine);
+        beatEl.appendChild(mainLine);
+        beatContainer.appendChild(beatEl);
+      });
+
+      // === AUTO-FIT THE MAIN TEXT TO ONE LINE, THEN INTERLOCK THE ACCENT ===
+      // The accent's baseline sits just touching, or a few px into, the big word's real
+      // glyph tops on every beat. A predictive formula drifts with font size, so measure
+      // instead: a zero-size inline-block probe sits exactly on its line's text baseline,
+      // and canvas actualBoundingBoxAscent gives the fitted string's glyph top above that
+      // baseline. The margin is then plain geometry, correct at any size.
+      function fitBeats() {
+        BEATS.forEach(function (beat, bi) {
+          var mainLine = document.getElementById('beat-' + bi + '-main');
+          var textEl = mainLine.querySelector('.line-text');
+          if (!(window.__hyperframes && typeof window.__hyperframes.fitTextFontSize === 'function')) return;
+          var result = window.__hyperframes.fitTextFontSize(beat.main, {
+            fontFamily: FONT_MAIN,
+            fontWeight: 400,
+            maxWidth: 1010,
+            baseFontSize: 620,
+            minFontSize: 150,
+            step: 4
+          });
+          // Size the line itself. Text and ghost inherit it, and the line box shrinks to
+          // match, so the absolutely positioned ghost stays level with the text.
+          mainLine.style.fontSize = result.fontSize + 'px';
+
+          var accentLine = document.getElementById('beat-' + bi + '-accent');
+          if (!accentLine) return;
+          var baselineOf = function (el) {
+            var p = document.createElement('span');
+            p.style.cssText = 'display:inline-block;width:0;height:0;padding:0;margin:0;border:0;';
+            el.appendChild(p);
+            var y = p.getBoundingClientRect().top;
+            el.removeChild(p);
+            return y;
+          };
+          var mctx = document.createElement('canvas').getContext('2d');
+          mctx.font = '400 ' + result.fontSize + 'px "' + FONT_MAIN + '"';
+          var asc = mctx.measureText(beat.main).actualBoundingBoxAscent;
+          var glyphTopY = baselineOf(textEl) - asc;
+          var accentBaseY = baselineOf(accentLine.querySelector('.line-text'));
+          // Target bite: a few px into the glyph tops, scaling gently with size.
+          var overlap = Math.min(20, Math.max(6, Math.round(0.03 * result.fontSize)));
+          // Layout is linear: 1px of margin change closes the distance by exactly 1px.
+          var M0 = -parseFloat(getComputedStyle(accentLine).marginBottom) || 0;
+          var M = Math.round(M0 + (glyphTopY + overlap - accentBaseY));
+          accentLine.style.marginBottom = '-' + M + 'px';
+        });
+      }
+      fitBeats();
+      // A bundled font may load after this script runs. Measure again once it has, or
+      // the fit and the interlock would be based on the fallback font. Beats animate
+      // only y and opacity, so re-fitting never disturbs the timeline.
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load('400 100px "' + FONT_MAIN + '"').then(fitBeats, function () {});
+      }
+
+      // === BUILD KARAOKE GROUPS ===
+      function groupWords(words, maxPerGroup) {
+        var groups = [];
+        var current = [];
+        for (var i = 0; i < words.length; i++) {
+          current.push(words[i]);
+          var w = words[i];
+          var endsWithPunct = /[.,!?]/.test(w.text.slice(-1));
+          var isLast = i === words.length - 1;
+          if (current.length >= maxPerGroup || endsWithPunct || isLast) {
+            groups.push({
+              words: current,
+              start: current[0].start,
+              end: current[current.length - 1].end
+            });
+            current = [];
+          }
+        }
+        return groups;
+      }
+
+      var GROUPS = groupWords(WORDS, 4);
+
+      var captionContainer = document.getElementById('caption-container');
+      GROUPS.forEach(function (group, gi) {
+        var groupEl = document.createElement('div');
+        groupEl.className = 'caption-group';
+        groupEl.id = 'cg-' + gi;
+        group.words.forEach(function (w, wi) {
+          var span = document.createElement('span');
+          span.className = 'word';
+          span.id = 'cg-' + gi + '-w-' + wi;
+          span.textContent = w.text;
+          groupEl.appendChild(span);
+        });
+        captionContainer.appendChild(groupEl);
+      });
+
+      // === TIMELINE ===
+      var tl = gsap.timeline({ paused: true });
+
+      // Independent slide-up entrance and slide-down exit per line
+      BEATS.forEach(function (beat, bi) {
+        var accentEl = document.getElementById('beat-' + bi + '-accent');
+        var mainEl   = document.getElementById('beat-' + bi + '-main');
+
+        var ENTER = 0.9;
+        var EXIT  = 0.9;
+        var MAIN_DELAY  = 0.18;   // main enters slightly after accent
+        var MAIN_EXIT_DELAY = 0.1;
+
+        tl.fromTo(accentEl,
+          { y: 80, opacity: 0 },
+          { y: 0, opacity: 1, duration: ENTER, ease: 'power3.out' },
+          beat.start
+        );
+        tl.fromTo(mainEl,
+          { y: 80, opacity: 0 },
+          { y: 0, opacity: 1, duration: ENTER + 0.06, ease: 'power3.out' },
+          beat.start + MAIN_DELAY
+        );
+
+        tl.to(accentEl,
+          { y: 60, opacity: 0, duration: EXIT, ease: 'power2.in' },
+          beat.end - EXIT
+        );
+        tl.to(mainEl,
+          { y: 60, opacity: 0, duration: EXIT, ease: 'power2.in' },
+          beat.end - EXIT + MAIN_EXIT_DELAY
+        );
+
+        tl.set(accentEl, { opacity: 0, visibility: 'hidden' }, beat.end);
+        tl.set(mainEl,   { opacity: 0, visibility: 'hidden' }, beat.end);
+      });
+
+      // Karaoke groups
+      GROUPS.forEach(function (group, gi) {
+        var groupEl = document.getElementById('cg-' + gi);
+        var ENTER_DUR = 0.18;
+        var EXIT_DUR = 0.12;
+        var enterAt = Math.max(0, group.start - 0.05);
+        var exitAt = group.end - EXIT_DUR;
+
+        tl.fromTo(groupEl,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: ENTER_DUR, ease: 'power2.out' },
+          enterAt
+        );
+
+        group.words.forEach(function (w, wi) {
+          var wEl = document.getElementById('cg-' + gi + '-w-' + wi);
+          tl.set(wEl, { className: 'word active' }, w.start);
+          tl.set(wEl, { className: 'word read' }, w.end);
+        });
+
+        tl.to(groupEl,
+          { opacity: 0, duration: EXIT_DUR, ease: 'power2.in' },
+          exitAt
+        );
+        tl.set(groupEl, { opacity: 0, visibility: 'hidden' }, group.end);
+      });
+
+      // Fade to black over the final moments
+      if (FADE_DUR > 0) {
+        tl.to('#fade-overlay',
+          { opacity: 1, duration: FADE_DUR, ease: 'power2.in' },
+          CLIP_DURATION - FADE_DUR
+        );
+      }
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[COMP_ID] = tl;
+    </script>
+
+  </div>
+</body>
+</html>

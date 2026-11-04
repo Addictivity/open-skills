@@ -1,0 +1,40 @@
+# Secrets and tokens: never commit these
+.tokens/
+.env
+.env.*
+*.env
+client_secret*.json
+*credentials*.json
+*token*.json
+*.pem
+*.key
+# Your own settings. Only config.example.json belongs in the repo.
+config.json
+# Pickles
+*.pkl
+*.pickle
+# Environments and caches
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+# Media
+*.mp4
+*.mov
+*.m4a
+*.mp3
+*.wav
+*.aiff
+*.webm
+*.palmier
+*.png
+*.jpg
+*.jpeg
+*.webp
+# Generated output
+renders/
+transcripts/
+composition-*/
+final_build.json

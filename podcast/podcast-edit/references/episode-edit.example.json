@@ -1,0 +1,50 @@
+{
+  "_comment": "Per-episode config for build_edl.py. Fill refs and offsets from Phase 1 (sync), kept_M from Phases 2 and 3 (intro splice, body minus cuts). All values below are placeholders.",
+  "fps": 25,
+  "window_s": 0.1,
+
+  "refs": {
+    "_comment": "Palmier media IDs for each source (from inspect_media or the project). With another editor, use any label you can map back to a file.",
+    "wide": "MEDIA_ID_WIDE",
+    "host_cam": "MEDIA_ID_HOST_CAM",
+    "guest_cam": "MEDIA_ID_GUEST_CAM",
+    "host_mic": "MEDIA_ID_HOST_MIC",
+    "guest_mic": "MEDIA_ID_GUEST_MIC"
+  },
+
+  "offsets": {
+    "_comment": "Each media's placement frame in the synced master (M-space). trimStart = M - offset. Mic offsets can be negative if the mics rolled before the cameras.",
+    "wide": 100,
+    "host_cam": 60,
+    "guest_cam": 160,
+    "host_mic": 1200,
+    "guest_mic": 1200
+  },
+
+  "kept_M": [
+    [1700, 2600],
+    [2700, 2800],
+    [4600, 50000]
+  ],
+  "_kept_note": "Master-frame ranges that survive: intro take A, intro take B, then the body. List each surviving sub-range of the body after removing fluff, dead air and retakes.",
+
+  "rms": {
+    "host": "/abs/path/host_rms.txt",
+    "guest": "/abs/path/guest_rms.txt"
+  },
+
+  "shot": {
+    "_comment": "Camera-cut tuning. Check the on-cam and wide split the script prints, and override only if a guest needs a different rhythm.",
+    "sil": -50.0,
+    "margin": 4.0,
+    "hold": 12,
+    "min_cam_run_s": 2.0,
+    "min_shot_s": 1.6,
+    "min_wide_s": 1.4,
+    "wide_every_s": 16.0,
+    "question_wide_max_s": 5.0,
+    "breath_s": 2.5,
+    "establish_push_s": 3.0,
+    "_shot_note": "min_wide_s and min_shot_s set a hard floor on every cut (no flashes). wide_every_s recurs the two-shot every N seconds inside a single-speaker run (lower means more wide)."
+  }
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  {{FONT_FACE}}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; position: relative; overflow: hidden; background: {{COLOUR_BACKGROUND}}; }
+
+  .background { position: absolute; inset: 0; }
+  .background img { width: 1280px; height: 720px; object-fit: cover; }
+
+  .guest {
+    position: absolute; left: {{GUEST_LEFT}}px; bottom: {{GUEST_BOTTOM}}px;
+    height: {{GUEST_HEIGHT}}px;
+    filter: drop-shadow(0 12px 40px rgba(0,0,0,0.6));
+  }
+  .host {
+    position: absolute; right: -130px; bottom: -130px;
+    width: 780px;
+    transform: rotate(-15deg);
+    filter: drop-shadow(0 12px 40px rgba(0,0,0,0.6));
+  }
+
+  .hook {
+    position: absolute; left: {{HOOK_LEFT}}; top: 100px;
+    transform: translateX(-50%);
+    font-family: '{{FONT_FAMILY}}', sans-serif; font-weight: 700;
+    font-size: 96px; line-height: 93px; letter-spacing: -2.88px;
+    color: {{COLOUR_TEXT}}; text-align: center; white-space: nowrap;
+  }
+  .hook .line { display: block; }
+  .hook .box-dark { background: {{COLOUR_STRIP}}; padding: 1px 24px; display: inline-block; }
+  .hook .box-highlight { background: {{COLOUR_HIGHLIGHT}}; padding: 1px 24px; display: inline-block; }
+
+  .badge {
+    position: absolute; left: 559px; top: 498px;
+    width: 188px; height: 188px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(16px);
+  }
+  .badge img {
+    width: 96px; transform: rotate(1deg);
+    filter: drop-shadow(0 6px 9px rgba(0,0,0,0.18)) drop-shadow(0 1px 2px rgba(0,0,0,0.27));
+  }
+
+  .name {
+    position: absolute;
+    background: {{COLOUR_STRIP}}; border: 4px solid {{COLOUR_TEXT}};
+    padding: 26px 36px;
+    font-family: '{{FONT_FAMILY}}', sans-serif; font-weight: 700;
+    font-size: 40px; letter-spacing: -1.2px; line-height: 1.03;
+    color: {{COLOUR_TEXT}}; text-transform: uppercase; white-space: nowrap;
+  }
+  .name-guest { left: 40px; top: 520px; transform: rotate(1.4deg); }
+  .name-host { right: 42px; top: 524px; transform: rotate(-2deg); }
+</style>
+</head>
+<body>
+  {{BACKGROUND_BLOCK}}
+  <img class="guest" src="{{GUEST_CUTOUT}}">
+  {{HOST_BLOCK}}
+  <div class="hook">
+    {{HOOK_LINES}}
+  </div>
+  {{BADGE_BLOCK}}
+  <div class="name name-guest">{{GUEST_NAME}}</div>
+  {{HOST_NAME_BLOCK}}
+</body>
+</html>
