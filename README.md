@@ -2,13 +2,13 @@
 
 Claude Code skills you can use as they are, or change to suit how you work. They come from [Addictivity](https://addictivity.com), and the first release is a pack for producing a video podcast.
 
-> **TODO:** link to the addictivity.com page for this pack once it exists.
-
 ## The podcast pack
 
 Nine skills that take an interview podcast from raw recording to published episode and shorts. Addictivity built them to produce its own show, then stripped out everything specific to that show. Your show's name, brand, paths and publishing targets all live in one settings file.
 
-It suits someone who records long-form interviews, is comfortable in a terminal, and would rather direct Claude Code than click through an editor for every episode. Expect some setup: there are API keys to add, and the multicam edit needs a specific Mac editor.
+It suits someone who records long-form interviews, is comfortable in a terminal, and would rather direct Claude Code than click through an editor for every episode. Expect some setup: there are API keys to add.
+
+**The multicam edit needs [Palmier Pro](https://palmier.io),** a Mac editor that requires macOS 26. `/podcast-edit` drives it directly and won't work without it. If you don't use Palmier, edit elsewhere and start at `/podcast-transcript`, or change the skill to suit your editor.
 
 ### The pipeline
 
@@ -74,11 +74,18 @@ Prices below come from each vendor's site in November 2026. They change, so chec
 | A background remover | `/thumbnail-generate` | macOS Preview is free. remove.bg and image MCP tools are paid |
 | [GoHighLevel](https://www.gohighlevel.com) | `/distribute`, optional | Paid subscription. Skip it and post from the paste pack |
 
-### Status and testing
+### What has and hasn't been tested
 
-`podcast/tests/run-offline.sh` runs every script against made-up fixtures with no accounts or keys. The thumbnail and a short have been rendered for real from this copy, with HyperFrames 0.9.16. The live calls to AssemblyAI, YouTube and GoHighLevel need your own accounts, and this generalised copy has not been run against them. Try one episode at low stakes first.
+**Tested:** the install steps from a fresh clone, on a Mac. An offline test script runs every script with no accounts or keys (`podcast/tests/run-offline.sh`). A thumbnail and a short were rendered for real from made-up footage, with HyperFrames 0.9.16.
 
-**`/podcast-edit` is the least proven skill.** It depends on Palmier's MCP connection, and this copy has never driven Palmier: only its three cut-list scripts have been tested. Palmier's server runs only while the app is open with a project loaded, and its port changes at each launch. If you can't get it connected, edit elsewhere and start at `/podcast-transcript`.
+**Not tested in this copy:**
+
+- Live AssemblyAI. The request follows AssemblyAI's documentation but has never been sent. If it rejects the default model, try `--model universal-3-5-pro`.
+- Live YouTube, including the Google Cloud setup and sign-in. Those steps come from Google's documentation and haven't been run end to end.
+- GoHighLevel.
+- Palmier. Only `/podcast-edit`'s three cut-list scripts have run. The rest of the skill has never driven the app from this copy.
+
+So try your first episode at low stakes, and expect to fix something along the way.
 
 ### Provided as is
 

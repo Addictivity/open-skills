@@ -38,16 +38,34 @@ Check titles for guest sensitivity before upload as well: provocative about the 
    ```bash
    cd ~/.claude/skills/distribute && python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
    ```
-2. **Your own Google OAuth client.** This takes about 15 minutes and costs nothing. Google renames these screens from time to time. At https://console.cloud.google.com :
-   1. Create a project, using the project picker at the top of the page.
-   2. Under APIs & Services, Library, find YouTube Data API v3 and enable it.
-   3. Set up the OAuth consent screen. Choose External as the audience and leave it in Testing mode.
-   4. Add the Google account that owns your channel as a test user.
-   5. Under Clients or Credentials, create an OAuth client of type Desktop app, and download its JSON.
-   6. Move that file to `paths.google_client_secret`, keeping the exact name in your settings. Keep it outside any repo.
-
-   At first sign-in Google warns that the app isn't verified. That's expected for your own client in Testing mode: choose Advanced, then continue.
+2. **Your own Google OAuth client.** See "Google Cloud setup" below.
 3. **Find your channel ID** in YouTube Studio under Settings, Channel, Advanced settings, and put it in `publishing.youtube.channel_id`.
+
+### Google Cloud setup
+
+These steps come from Google's documentation and have not been run end to end with this pack. Screen names may differ for you. The pages they come from:
+
+- [Enable an API and create a Desktop client](https://developers.google.com/youtube/v3/guides/auth/installed-apps)
+- [Configure the consent screen and test users](https://developers.google.com/workspace/guides/configure-oauth-consent)
+- [Create credentials](https://developers.google.com/workspace/guides/create-credentials)
+
+In the [Google Cloud console](https://console.cloud.google.com):
+
+1. **Create a project.** Use the project picker at the top of the page.
+2. **Enable the API.** Open the API Library, search for YouTube Data API v3, select it and click Enable. Accept the terms if asked.
+3. **Set up the consent screen.** Go to Menu, Google Auth platform, Branding. If it says the platform isn't configured yet, click Get Started. Enter an app name and your email, choose External as the audience, enter a contact email, agree to the policy and click Create.
+4. **Add yourself as a test user.** Go to Audience. Under Test users, click Add users, enter the Google account that manages your channel and click Save.
+5. **Create the client.** Go to Clients and click Create Client. Choose Desktop app as the application type, give it a name and click Create.
+6. **Download the client's JSON file** and move it to `paths.google_client_secret`, using the exact file name in your settings. Keep it outside any repo. Google's pages don't describe this download. Look for a download button on the client's dialog or on its row in the Clients list.
+7. **Sign in on the first upload.** A browser opens. Expect Google to warn you that the app is unverified, because it's your own app in testing. Google's pages don't describe the exact screen, but we'd expect to continue through an Advanced link.
+
+**If a screen differs:** go by the end result: a Desktop client's JSON file at `paths.google_client_secret`, from a project that has the API enabled and your account as a test user. Search the console for the label, or check the pages above, since Google's own wording wins over ours.
+
+**If it fails:**
+
+- Sign-in blocked or access denied: check that the account you chose is listed as a test user.
+- Sign-in complains about scopes: under Data Access, click Add or Remove Scopes and add `youtube.upload` and `youtube.force-ssl`. The scripts normally ask for these when you sign in, so you shouldn't need this.
+- Asked to enable billing: Google's page says this can happen. Read what it says before agreeing, because we expect the free quota to cover this pack.
 
 **Quota and private locks.** The YouTube Data API gives a new project a limited daily quota. Check the current numbers in the Google Cloud console before a big batch. A batch that hits the limit can resume the next day, because uploaded clips are skipped. Google used to lock uploads from unaudited projects to private, and reversed that on 2 November 2026. If a first upload still shows as locked in YouTube Studio, stop there and check Google's current policy, because a locked video won't work as a guest review link.
 

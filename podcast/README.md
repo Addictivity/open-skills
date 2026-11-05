@@ -1,6 +1,8 @@
 # Podcast pack
 
-Nine Claude Code skills for producing a video interview podcast. Install steps are in the [root README](../README.md).
+Nine Claude Code skills for producing a video interview podcast. Install steps are in the [root README](../README.md), along with what has and hasn't been tested.
+
+**The multicam edit needs Palmier Pro.** Without it, edit elsewhere and start at `/podcast-transcript`, or change `/podcast-edit` to suit your editor. See [Without Palmier](#without-palmier).
 
 ## Order of use
 
@@ -108,7 +110,7 @@ The other scripts use only the standard library.
 
 ### YouTube
 
-Follow the setup section in `distribute/SKILL.md`: your own Google Cloud project, a Desktop OAuth client, and your channel ID in the settings file.
+Follow the setup section in `distribute/SKILL.md`: your own Google Cloud project, a Desktop OAuth client, and your channel ID in the settings file. Those steps come from Google's documentation and haven't been run end to end, and the section says what to do if a screen differs.
 
 ### Fonts
 

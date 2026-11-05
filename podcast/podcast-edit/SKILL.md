@@ -6,6 +6,8 @@ version: 1.0.0
 
 # /podcast-edit
 
+**This skill needs Palmier Pro.** If the user doesn't have it, say so before doing anything else: they can edit elsewhere and start at `/podcast-transcript`, or change this skill to suit their editor. This copy has never driven Palmier from start to finish, so expect to adjust tool calls if the app has changed.
+
 Repeatable multicam edit through the **Palmier Pro** MCP video editor. Takes one take from three cameras and two lav mics and produces the edited master: synced, retakes and dead air removed, speaker-led camera cutting with wide accents, a clean intro.
 
 The segment map and camera offsets get reused by `/shorts`, so one edit produces two output formats.
