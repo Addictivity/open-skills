@@ -7,6 +7,8 @@
 
 set -eu
 
+command -v ffmpeg >/dev/null || { echo "Error: ffmpeg not found. Install it first (on a Mac: brew install ffmpeg)." >&2; exit 1; }
+
 RAW_DIR="${1:?Usage: normalise-audio.sh <path-to-raw-dir>}"
 OUT_DIR="$RAW_DIR/normalised"
 
@@ -54,5 +56,5 @@ for clip in "${clips[@]}"; do
 done
 
 echo ""
+[ "$failed" -eq 0 ] || { echo "$failed clip(s) failed. See the errors above." >&2; exit 1; }
 echo "Done. Normalised clips at: $OUT_DIR"
-[ "$failed" -eq 0 ] || { echo "$failed clip(s) failed." >&2; exit 1; }

@@ -3,8 +3,8 @@
 #
 # Usage: bash archive-media.sh "/path/to/Episode N - Guest" "/path/to/archive/Episode N - Guest"
 #
-# Run only after the shorts are signed off. Text and small images stay with the episode
-# (often in a synced folder or a notes vault). Video belongs on the archive drive.
+# Run last, after /distribute and /podcast-guest-comms: both read the renders from the episode
+# folder. Text and small images stay with the episode. Video belongs in the archive.
 #
 # Moves:   shorts/raw/*.mp4|mov, shorts/renders/*.mp4
 # Deletes: composition-*/clip.mov|mp4 (regenerable from raw)
@@ -16,8 +16,12 @@ set -eu
 EP_DIR="${1:?Usage: archive-media.sh <episode-dir> <archive-episode-dir>}"
 ARCHIVE_DIR="${2:?Usage: archive-media.sh <episode-dir> <archive-episode-dir>}"
 
+# A quoted ~ does not expand by itself.
+EP_DIR="${EP_DIR/#\~/$HOME}"
+ARCHIVE_DIR="${ARCHIVE_DIR/#\~/$HOME}"
+
 if [ ! -d "$(dirname "$ARCHIVE_DIR")" ]; then
-  echo "ERROR: archive location not found: $(dirname "$ARCHIVE_DIR"). Is the drive mounted?" >&2
+  echo "ERROR: archive location not found: $(dirname "$ARCHIVE_DIR"). Create the folder, or if it is on an external drive, check the drive is mounted." >&2
   exit 1
 fi
 if [ ! -d "$EP_DIR/shorts" ]; then

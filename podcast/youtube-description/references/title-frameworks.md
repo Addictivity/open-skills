@@ -1,6 +1,6 @@
 # Title frameworks
 
-Five patterns for interview podcasts. Give one option per pattern when generating alternatives. The examples use a made-up guest: Dana Reyes, founder of Fernhill Coffee, on a show for independent coffee shop owners.
+Five patterns for interview podcasts. Give one option per pattern when generating alternatives. The examples use a made-up guest: Tamsin Vell, founder of Quillfen Coffee, on a show for independent coffee shop owners.
 
 **Hard rules for every title:**
 
@@ -20,8 +20,8 @@ Five patterns for interview podcasts. Give one option per pattern when generatin
 - `How {Guest Name} {specific achievement}`
 
 **Examples:**
-- `From garage roaster to 40 tonnes a year | Dana Reyes`
-- `How Dana Reyes rebuilt Fernhill after losing her biggest account`
+- `From garage roaster to 40 tonnes a year | Tamsin Vell`
+- `How Tamsin Vell rebuilt Quillfen after losing her biggest account`
 
 ## Pattern 2: curiosity or question
 
@@ -34,7 +34,7 @@ Five patterns for interview podcasts. Give one option per pattern when generatin
 
 **Examples:**
 - `Why most coffee shops lose money on their best seller`
-- `Is single origin worth it for a small shop? | Dana Reyes`
+- `Is single origin worth it for a small shop? | Tamsin Vell`
 
 ## Pattern 3: lesson-led
 
@@ -59,7 +59,7 @@ Five patterns for interview podcasts. Give one option per pattern when generatin
 
 **Examples:**
 - `What most shop owners get wrong about loyalty cards`
-- `Why your best barista should not train the team | Dana Reyes`
+- `Why your best barista should not train the team | Tamsin Vell`
 
 ## Pattern 5: achievement-led
 
@@ -70,14 +70,14 @@ Five patterns for interview podcasts. Give one option per pattern when generatin
 - `Inside {achievement} | {Guest Name}, {Role}`
 
 **Examples:**
-- `Inside a Roaster of the Year win | Dana Reyes, Fernhill Coffee`
-- `Dana Reyes: 40 tonnes a year from one small roastery`
+- `Inside a Roaster of the Year win | Tamsin Vell, Quillfen Coffee`
+- `Tamsin Vell: 40 tonnes a year from one small roastery`
 
 ## Output format
 
 For each option, give the character count and one sentence on which signal it leans on and why it fits this guest.
 
-> 1. **From garage roaster to 40 tonnes a year | Dana Reyes** (51 chars): story-led. Surfaces the headline angle from the producer notes, with the name at the end.
+> 1. **From garage roaster to 40 tonnes a year | Tamsin Vell** (51 chars): story-led. Surfaces the headline angle from the pre-call brief's notes, with the name at the end.
 
 ## Picking the recommended title
 

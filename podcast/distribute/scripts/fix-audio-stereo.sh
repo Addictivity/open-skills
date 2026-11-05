@@ -9,6 +9,8 @@
 
 set -eu
 
+command -v ffmpeg >/dev/null || { echo "Error: ffmpeg not found. Install it first (on a Mac: brew install ffmpeg)." >&2; exit 1; }
+
 RENDERS_DIR="${1:?Usage: fix-audio-stereo.sh <path-to-renders-dir>}"
 
 if [ ! -d "$RENDERS_DIR" ]; then
@@ -57,5 +59,5 @@ for f in "${files[@]}"; do
 done
 
 echo ""
+[ "$failed" -eq 0 ] || { echo "$failed file(s) failed. See the errors above." >&2; exit 1; }
 echo "Done. Originals in: $RENDERS_DIR/mono-bak/"
-[ "$failed" -eq 0 ] || { echo "$failed file(s) failed." >&2; exit 1; }

@@ -67,14 +67,17 @@ The template is `template/index.html`. Treat it as the source of truth: the scri
 
 Read `transcript-clean.md` and the brief's headline angle, then choose six to eight moments of 25 to 75 seconds that stand alone without the episode. Look for a clear claim or a story with a turn. Write `clips.md` in the format in `references/clips-format.md`, including a posting order with the clip that matches the title first. Get the user's sign-off on the list before cutting.
 
-Take cut windows from `transcript-words.json`. Word times from a full-episode Whisper run can drift by about a second, and per-clip Whisper transcripts are only for the karaoke layer.
+Take cut windows from `transcript-words.json`. Word times from the full-episode transcript can drift by about a second, and per-clip Whisper transcripts are only for the karaoke layer.
 
 ### 3. Cut the raw verticals (skip if the user exported them from their editor)
 
 Save to `shorts/raw/clip-N.mp4`. Cut from the source cameras using the offsets handed over by `/podcast-edit`, and take audio from the master. For one continuous shot from a 1080p camera:
 
 ```bash
-# source_t = master_t - (camera_offset_frames / fps)
+# master_t is a time in the finished master. Cuts moved everything after them, so first find
+# the kept segment it falls in, in final_build.json: uncut_t = (trimStartFrame + master_frame - startFrame) / fps
+# source_t = uncut_t - (camera_offset_frames / fps)
+mkdir -p shorts/raw
 ffmpeg -ss <source_t> -t <length> -i camera.mp4 -ss <master_t> -t <length> -i master.mp4 \
   -map 0:v -map 1:a -vf "crop=608:1080:<x>:0,scale=1080:1920:flags=lanczos,unsharp" \
   -c:v libx264 -crf 16 -c:a aac -b:a 256k shorts/raw/clip-N.mp4
@@ -101,7 +104,7 @@ Word-level timings drive the karaoke layer.
 bash ~/.claude/skills/shorts/scripts/transcribe-clips.sh "<episode>/shorts"
 ```
 
-Set `WHISPER_MODEL` to change from `small.en`. Writes `shorts/transcripts/<clip>.json`, an array of `{ text, start, end }`. The builder applies single-word `glossary` fixes. Fix multi-word errors by hand in the JSON.
+The script uses `small.en` unless you set `WHISPER_MODEL`, so pass `transcription.whisper_model` from the settings file that way if it differs. Writes `shorts/transcripts/<clip>.json`, an array of `{ text, start, end }`. The builder applies single-word `glossary` fixes. Fix multi-word errors by hand in the JSON.
 
 ### 6. Check the beats in `clips.md`
 
@@ -130,15 +133,15 @@ Each clip writes `shorts/renders/clip-N-final.mp4`.
 Extract one frame at each beat's mid-point and view it. Common failures:
 
 - Beat invisible at the expected time: check `.beat` still has `position: absolute`.
-- Gap between accent and main, or accent buried: the interlock measurement failed. Verify on a large x-height main ("over"), a small long main ("second guessing") and a caps main ("AI = CEO"). Static HTML in a browser will mislead you here, because the fit function only exists in the renderer.
+- Gap between accent and main, or accent buried: the interlock measurement failed. Verify on a large x-height main ("over"), a small long main ("wholesale pricing") and a caps main ("VAT = ROI"). Static HTML in a browser will mislead you here, because the fit function only exists in the renderer.
 - Capitals in the main that are not an acronym: the lowercase enforcement failed.
 - Main longer than 2 words: fix the copy in `clips.md` and rebuild.
 
 Pass each MP4 path to the user with a short summary. They watch for motion sync.
 
-### 10. After sign-off, archive the media
+### 10. Archive the media, last of all
 
-Heavy video should not stay in a notes vault or synced folder.
+Do this only after `/distribute` and `/podcast-guest-comms` have finished. Both read the rendered MP4s from the episode folder, and they fail if the files have moved. Heavy video should not stay in a synced folder for good.
 
 ```bash
 bash ~/.claude/skills/shorts/scripts/archive-media.sh "<episode>" "<paths.media_archive>/Episode N - Guest"
@@ -154,4 +157,4 @@ bash ~/.claude/skills/shorts/scripts/archive-media.sh "<episode>" "<paths.media_
 
 ## Next
 
-`/distribute` takes the rendered MP4s to YouTube and LinkedIn.
+`/distribute` takes the rendered MP4s to YouTube and LinkedIn. Come back for step 10 at the end.

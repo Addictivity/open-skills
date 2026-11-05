@@ -20,7 +20,7 @@ Palmier Pro (https://palmier.io) is a macOS editor with a local MCP server. Its 
 
 The server runs only while the app is open with a project loaded, on a port that changes per launch (`http://127.0.0.1:<PORT>/mcp`). Grab the current connection command from the app's connect screen, register it as `palmier`, then **restart the Claude Code session** so the tools load. If the tools are missing, say so and stop.
 
-**Without Palmier:** `extract-rms.sh`, `diarize.py` and `build_edl.py` all run on their own. You still get frame-accurate kept ranges and a speaker-led camera cut list as JSON, and you place those clips by hand in your own editor. Phases 0, 2 and 3 carry over. The Palmier rules below do not.
+**Without Palmier:** most people should edit elsewhere and start at `/podcast-transcript`. `extract-rms.sh`, `diarize.py` and `build_edl.py` do run on their own and give a speaker-led camera cut list. You have to measure each camera's offset yourself, because Phase 1 uses Palmier's `sync_audio`, and choose your own kept ranges. The output is JSON for `add_clips`, which no editor imports, so you place every shot by hand. The Palmier rules below do not apply.
 
 ## When to invoke
 
@@ -82,15 +82,15 @@ Resolve the episode folder first: `paths.episodes_root/Episode N - Guest Name/`.
 
 ### Phase 3: speaker map
 
-- Export per-0.1s RMS of both lav mics: `scripts/extract-rms.sh <host.wav> <guest.wav> <workdir>`.
-- `scripts/diarize.py <host_rms.txt> <guest_rms.txt>` gives the talk-time split and turns. Sanity check: guest talk time well above host for an interview.
+- Export per-0.1s RMS of both lav mics: `bash scripts/extract-rms.sh <host.wav> <guest.wav> <workdir>`.
+- `python3 scripts/diarize.py <host_rms.txt> <guest_rms.txt>` gives the talk-time split and turns. Sanity check: guest talk time well above host for an interview.
 - **Listen where the transcript goes quiet but the mic does not.** Speakers say "edit that out" under their breath, and transcription engines can render it as a pause or an ellipsis. Before assembling, list every span of 1.5s or more where the diarisation shows speech but the transcript has no words (or only "..."), and check each one: transcribe it with a second engine, or view the RMS. Cut anything aimed at the producer on sight.
-- Run a content pass over the clean transcript for the dead-air gaps and the fluff and retake list. Energy alone cannot judge filler, false starts, repeats or off-topic tangents. Keep one or two charming asides.
+- Run a content pass over a transcript of the raw recording (run `/podcast-transcript` on the mic audio if you have none yet) for the dead-air gaps and the fluff and retake list. Energy alone cannot judge filler, false starts, repeats or off-topic tangents. Keep one or two charming asides.
 
 ### Phase 4: assemble the EDL
 
 - Fill an episode config (see `references/episode-edit.example.json`): fps, per-media `refs` and `offsets` from Phase 1, the `kept_M` ranges, the two RMS paths.
-- `scripts/build_edl.py <config.json>` writes `final_build.json`: `add_clips` payloads for the base (wide radio-edit, host mic, guest mic, identical cuts) and the camera overlay (speaker-led shots with wide accents: questions go wide, an establishing wide open, and a recurring two-shot through long runs).
+- `python3 scripts/build_edl.py <config.json>` writes `final_build.json`: `add_clips` payloads for the base (wide radio-edit, host mic, guest mic, identical cuts) and the camera overlay (speaker-led shots with wide accents: questions go wide, an establishing wide open, and a recurring two-shot through long runs).
 - **Two-shot use and no flash cuts:** the builder recurs a wide of about 2.5s (`breath_s`) every `wide_every_s` (default 16s) inside any single-speaker run, and enforces a minimum on every cut (`min_shot_s` 1.6s, `min_wide_s` 1.4s). Lower `wide_every_s` means more wide.
 - The **intro is a special case**, built separately (Phase 2), not through `build_edl.py`. Build the body with body-only `kept_M`, then place it on the timeline at +`intro_frames`. Base and overlay stay continuous when the intro ends and the body begins at the same host-mic source second.
 - Execute in Palmier: place the three base tracks, then paint the overlay onto a top video track with `add_clips`. Every placed camera clip spawns a linked scratch audio clip. Collect all their IDs from the responses and `set_clip_properties volume 0` in one batch so only the mics sound.
@@ -116,4 +116,4 @@ Resolve the episode folder first: `paths.episodes_root/Episode N - Guest Name/`.
 
 ## Next
 
-`/podcast-transcript` on the rendered master, then `/shorts`.
+`/podcast-transcript` on the rendered master. Keep the handoff block for `/shorts`.

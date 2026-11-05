@@ -39,13 +39,14 @@ The full guide is in [`podcast/README.md`](podcast/README.md).
 
 ### Install
 
-You need [Claude Code](https://claude.com/claude-code), Node 22 or later, Python 3 and ffmpeg.
+You need [Claude Code](https://claude.com/claude-code), Node 22 or later, Python 3 and ffmpeg. Thumbnails also need Google Chrome.
 
 ```bash
 git clone https://github.com/Addictivity/open-skills.git
 cd open-skills/podcast
 
 # Copy the skills. This overwrites any existing skills with the same names, so check first.
+mkdir -p ~/.claude/skills
 for s in podcast-transcript podcast-edit thumbnail-brief thumbnail-generate youtube-description \
          podcast-episode-page shorts distribute podcast-guest-comms; do
   cp -R "$s" ~/.claude/skills/
@@ -75,7 +76,9 @@ Prices below come from each vendor's site in November 2026. They change, so chec
 
 ### Status and testing
 
-`podcast/tests/run-offline.sh` runs every script against made-up fixtures with no accounts or keys, and the shorts template and thumbnail have been rendered for real. The live calls to AssemblyAI, YouTube, GoHighLevel and Palmier need your own accounts, and this generalised copy has not been run against them. Try one episode at low stakes first.
+`podcast/tests/run-offline.sh` runs every script against made-up fixtures with no accounts or keys. The thumbnail and a short have been rendered for real from this copy, with HyperFrames 0.9.16. The live calls to AssemblyAI, YouTube and GoHighLevel need your own accounts, and this generalised copy has not been run against them. Try one episode at low stakes first.
+
+**`/podcast-edit` is the least proven skill.** It depends on Palmier's MCP connection, and this copy has never driven Palmier: only its three cut-list scripts have been tested. Palmier's server runs only while the app is open with a project loaded, and its port changes at each launch. If you can't get it connected, edit elsewhere and start at `/podcast-transcript`.
 
 ### Provided as is
 

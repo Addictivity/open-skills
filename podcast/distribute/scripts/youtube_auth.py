@@ -4,10 +4,16 @@ import os
 import sys
 from pathlib import Path
 
-from google.auth.exceptions import RefreshError
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+try:
+    import googleapiclient  # noqa: F401  (the callers need it, so check it here too)
+    from google.auth.exceptions import RefreshError
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+except ImportError as e:
+    sys.exit(f"ERROR: Python package missing ({e.name}). Set up the venv once:\n"
+             "  cd ~/.claude/skills/distribute && python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt\n"
+             "Then run this script with ~/.claude/skills/distribute/.venv/bin/python")
 
 
 def get_credentials(credentials_path: Path, token_store: Path, scopes: list):
@@ -28,8 +34,8 @@ def get_credentials(credentials_path: Path, token_store: Path, scopes: list):
             print("Saved token no longer works, asking for consent again...", file=sys.stderr)
 
     if not refreshed:
-        if not credentials_path.exists():
-            sys.exit(f"No valid token and OAuth client file missing: {credentials_path}")
+        if not credentials_path.is_file():
+            sys.exit(f"No valid token and OAuth client file missing: '{credentials_path}'. Set it up as in distribute/SKILL.md, and check --credentials points at the file.")
         flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), scopes)
         print("Opening browser for OAuth consent. Choose the channel you want to publish to.", file=sys.stderr)
         # The default prompt prints to stdout, which would corrupt the JSON callers capture.

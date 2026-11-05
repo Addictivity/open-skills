@@ -14,7 +14,7 @@ if (require.main === module) main();
 
 function main() {
   const args = lib.parseArgs(process.argv.slice(2));
-  const EPISODE_DIR = args['episode-dir'] || args.e;
+  const EPISODE_DIR = lib.expandHome(args['episode-dir'] || args.e);
   if (!EPISODE_DIR) lib.fail('Usage: node build-youtube-metadata.js --episode-dir "/path/to/Episode N - Guest"');
 
   const config = lib.loadConfig(args.config);
@@ -46,7 +46,7 @@ function main() {
   const outPath = path.join(distDir, 'youtube-metadata.json');
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
   console.log(`Wrote ${Object.keys(out).length} clip metadata entries to ${outPath}`);
-  if (!link) console.log('Note: no episode link found. Upload the episode or turn the site on, then re-run so the descriptions carry it.');
+  if (!link) console.log('Note: no episode link yet, so these descriptions will not carry one. Clips upload before the episode, so add the link in YouTube Studio afterwards, or turn the site on.');
 }
 
 function extractBaseTags(youtube) {
@@ -67,7 +67,7 @@ function truncate(s, n) {
 
 function buildTitle(clip) {
   // YouTube caps titles at 100 characters. The hook is already shaped as a first line.
-  return truncate((clip.hook || clip.headline || '').trim(), 100);
+  return truncate((clip.hook || clip.headline || '').replace(/\p{Extended_Pictographic}\uFE0F?/gu, '').trim(), 100);
 }
 
 function buildDescription(clip, link, meta, config) {
@@ -89,13 +89,12 @@ function buildDescription(clip, link, meta, config) {
 }
 
 function buildTags(clip, baseTags, config) {
-  // Shorts, the show's tags, words from the clip headline, then the episode's tags.
-  const specific = (clip.headline || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length >= 4);
+  // Shorts, the show's tags, then the episode's tags.
   const showName = (config.show || {}).name;
   const configured = ((config.publishing || {}).youtube || {}).tags || [];
   const seen = new Set();
   const tags = [];
-  for (const t of ['Shorts', showName, showName && showName + ' Podcast', ...configured, ...specific, ...baseTags]) {
+  for (const t of ['Shorts', showName, showName && showName + ' Podcast', ...configured, ...baseTags]) {
     const k = (t || '').toLowerCase().trim();
     if (k && !seen.has(k)) { seen.add(k); tags.push(t.trim()); }
   }

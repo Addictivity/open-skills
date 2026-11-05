@@ -6,6 +6,11 @@
 # Sequential, so Chrome workers do not starve each other.
 
 set -eu -o pipefail
+HYPERFRAMES="${HYPERFRAMES:-hyperframes@0.9.16}"  # the version this pack was tested with
+
+command -v ffmpeg >/dev/null || { echo "Error: ffmpeg not found. Install it first (on a Mac: brew install ffmpeg)." >&2; exit 1; }
+command -v npx >/dev/null || { echo "Error: npx not found. HyperFrames needs Node 22 or later: https://nodejs.org" >&2; exit 1; }
+[ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] || { echo "Error: HyperFrames needs Node 22 or later, you have $(node -v)." >&2; exit 1; }
 
 SHORTS_DIR="${1:?Usage: render-all.sh <path-to-shorts-dir>}"
 
@@ -44,13 +49,13 @@ for comp_dir in "${comps[@]}"; do
   echo "  -> Rendering $comp_name"
   comp_start=$(date +%s)
 
-  if ! (cd "$comp_dir" && npx --yes hyperframes lint); then
+  if ! (cd "$comp_dir" && npx --yes "$HYPERFRAMES" lint); then
     echo "    LINT FAILED on $comp_name. Skipping."
     failed=$((failed + 1))
     continue
   fi
 
-  if ! (cd "$comp_dir" && npx --yes hyperframes render --quality standard --output "$outpath" 2>&1 | tail -3); then
+  if ! (cd "$comp_dir" && npx --yes "$HYPERFRAMES" render --quality standard --output "$outpath" 2>&1 | tail -3); then
     echo "    RENDER FAILED on $comp_name"
     rm -f "$outpath"
     failed=$((failed + 1))

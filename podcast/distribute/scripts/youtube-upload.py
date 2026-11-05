@@ -19,11 +19,11 @@ import json
 import sys
 from pathlib import Path
 
+from youtube_auth import get_credentials
+
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
-
-from youtube_auth import get_credentials
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 CATEGORY_PEOPLE_AND_BLOGS = "22"

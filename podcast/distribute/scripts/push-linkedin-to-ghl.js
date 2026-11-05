@@ -24,7 +24,7 @@ const lib = require('./lib');
 const GHL_API = 'https://services.leadconnectorhq.com';
 
 const args = lib.parseArgs(process.argv.slice(2));
-const EP_DIR = args['episode-dir'] || args.e;
+const EP_DIR = lib.expandHome(args['episode-dir'] || args.e);
 if (!EP_DIR) lib.fail('Usage: node push-linkedin-to-ghl.js --episode-dir "/path/to/Episode N - Guest" [--status draft|scheduled] [--dry-run]');
 
 const config = lib.loadConfig(args.config);

@@ -3,12 +3,14 @@
 # Fixtures are made up and generated in a temp folder, using ffmpeg for media.
 #
 # Usage: bash podcast/tests/run-offline.sh
-# Needs: node, python3, ffmpeg. Tests that need Python packages run only if PYTHON can import
-# them, so point PYTHON at a venv with both requirements.txt files installed for full coverage.
+# Needs: node, python3, ffmpeg. Tests that need Python packages use the venvs from the setup
+# steps if they exist, or PYTHON if you set it, and are skipped if the packages are not there.
 
 set -u
 PODCAST="$(cd "$(dirname "$0")/.." && pwd)"
 PY="${PYTHON:-python3}"
+PY_TR="${PYTHON:-$HOME/.claude/skills/podcast-transcript/.venv/bin/python}"; [ -x "$PY_TR" ] || PY_TR="$PY"
+PY_YT="${PYTHON:-$HOME/.claude/skills/distribute/.venv/bin/python}"; [ -x "$PY_YT" ] || PY_YT="$PY"
 T="$(mktemp -d)"
 trap 'rm -rf "$T"' EXIT
 pass=0; fail=0; skip=0
@@ -21,7 +23,7 @@ check() { local label="$1"; shift; local out; if out="$("$@" 2>&1)"; then ok "$l
 refuses() { local label="$1" want="$2"; shift 2; local out; if out="$("$@" 2>&1)"; then bad "$label (should have failed)" "$out"; elif echo "$out" | grep -q "$want"; then ok "$label"; else bad "$label (wrong message)" "$out"; fi; }
 
 # --- Fixtures ---------------------------------------------------------------
-EP="$T/Episode 2 - Dana Reyes"
+EP="$T/Episode 2 - Tamsin Vell"
 mkdir -p "$EP/shorts/raw" "$EP/shorts/transcripts" "$EP/shorts/renders" "$EP/distribute"
 node -e '
   const fs = require("fs");
@@ -31,17 +33,18 @@ node -e '
   c.paths.google_client_secret = process.argv[2] + "/no-such-client.json";
   c.paths.tokens_dir = process.argv[2] + "/tokens";
   c.publishing.youtube.channel_id = "CHANNEL_EXPECTED";
+  c.show.slug = "test-show";
   fs.writeFileSync(process.argv[2] + "/config.json", JSON.stringify(c));
 ' "$PODCAST/config.example.json" "$T"
 export PODCAST_CONFIG="$T/config.json"
 
 cat > "$EP/README.md" <<'EOF'
 ---
-title: Episode 2 - Dana Reyes
+title: Episode 2 - Tamsin Vell
 episode: 2
-guest: Dana Reyes
+guest: Tamsin Vell
 guest_role: Founder
-guest_company: Fernhill Coffee
+guest_company: Quillfen Coffee
 guest_linkedin: https://www.linkedin.com/in/example/
 ---
 EOF
@@ -59,17 +62,17 @@ cat > "$EP/clips.md" <<'EOF'
 **LinkedIn caption:**
 > They rang on a Tuesday.
 >
-> Dana Reyes on what she changed next. Link in comments.
+> Tamsin Vell on what she changed next. Link in comments.
 
 **On-screen text:**
 - 00:01 - 00:05: `They rang on. a Tuesday.` @Tuesday
-- 00:06 - 00:09: `AI = CEO. Second Guessing Everything.` @everything
+- 00:06 - 00:09: `VAT = ROI. Second Roast Everything.` @everything
 
 **Cut style:** Talking head.
 
 ---
 
-## Clip 2 - Fernhil pricing
+## Clip 2 - Quilfen pricing
 
 **LinkedIn hook (line 1):**
 > The price nobody wanted to change.
@@ -95,12 +98,12 @@ cat > "$EP/youtube-description.md" <<'EOF'
 ## Tags (paste into YouTube backend)
 
 ```
-coffee roasting, wholesale coffee, dana reyes
+coffee roasting, wholesale coffee, tamsin vell
 ```
 
 ## Notes for the user
 EOF
-WORDS='[{"text":"They","start":0.5,"end":0.7},{"text":"rang","start":0.7,"end":1},{"text":"on","start":1,"end":1.2},{"text":"a","start":1.2,"end":1.3},{"text":"Tuesday.","start":1.3,"end":2},{"text":"Fernhil","start":2.5,"end":3},{"text":"everything","start":7,"end":7.5}]'
+WORDS='[{"text":"They","start":0.5,"end":0.7},{"text":"rang","start":0.7,"end":1},{"text":"on","start":1,"end":1.2},{"text":"a","start":1.2,"end":1.3},{"text":"Tuesday.","start":1.3,"end":2},{"text":"Quilfen","start":2.5,"end":3},{"text":"everything","start":7,"end":7.5}]'
 echo "$WORDS" > "$EP/shorts/transcripts/clip-1.json"
 echo "$WORDS" > "$EP/shorts/transcripts/clip-2.json"
 
@@ -119,6 +122,12 @@ ffmpeg -hide_banner -loglevel error -f lavfi -i "sine=frequency=300:duration=100
 echo "Settings"
 check "config.example.json is valid JSON" node -e "JSON.parse(require('fs').readFileSync('$PODCAST/config.example.json','utf8'))"
 refuses "missing settings file is explained" "settings file not found" env PODCAST_CONFIG="$T/nope.json" node "$PODCAST/distribute/scripts/build-youtube-metadata.js" --episode-dir "$EP"
+
+echo "Missing tools"
+for s in shorts/scripts/normalise-audio.sh distribute/scripts/fix-audio-stereo.sh shorts/scripts/render-all.sh shorts/scripts/transcribe-clips.sh; do
+  refuses "$(basename "$s") names ffmpeg" "ffmpeg not found" env PATH=/nonexistent /bin/bash "$PODCAST/$s" "$T"
+done
+refuses "extract-rms.sh names ffmpeg" "ffmpeg not found" env PATH=/nonexistent /bin/bash "$PODCAST/podcast-edit/scripts/extract-rms.sh" a b "$T"
 
 # --- podcast-edit -----------------------------------------------------------
 echo "podcast-edit"
@@ -158,12 +167,16 @@ check "EDL obeys its rules" node -e '
 
 # --- podcast-transcript -----------------------------------------------------
 echo "podcast-transcript"
-if "$PY" -c "import requests, dotenv" 2>/dev/null; then
+refuses "missing Python packages are explained" "Set up the venv" python3 -S "$PODCAST/podcast-transcript/scripts/transcribe.py" --help
+if "$PY_TR" -c "import requests, dotenv" 2>/dev/null; then
+  PY_STD="$PY"; PY="$PY_TR"
   TR="$PODCAST/podcast-transcript/scripts/transcribe.py"
   check "--help works" "$PY" "$TR" --help
-  check "dry run with no key makes no calls" bash -c "env -u ASSEMBLYAI_API_KEY '$PY' '$TR' --input-file '$T/host.wav' --output-dir '$EP' --guest-name 'Dana Reyes' --dry-run | grep 'API key MISSING'"
-  refuses "real run with no key stops" "ASSEMBLYAI_API_KEY not found" env -u ASSEMBLYAI_API_KEY "$PY" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Dana Reyes"
-  refuses "cost cap stops the run" "exceeds cap" "$PY" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Dana Reyes" --cost-cap-usd 0.0001 --dry-run
+  check "dry run with no key makes no calls" bash -c "env -u ASSEMBLYAI_API_KEY '$PY' '$TR' --input-file '$T/host.wav' --output-dir '$EP' --guest-name 'Tamsin Vell' --dry-run | grep 'API key MISSING'"
+  refuses "real run with no key stops" "ASSEMBLYAI_API_KEY not found" env -u ASSEMBLYAI_API_KEY "$PY" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Tamsin Vell"
+  refuses "real run with the placeholder key stops" "still the placeholder" env ASSEMBLYAI_API_KEY=your-assemblyai-key "$PY" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Tamsin Vell"
+  refuses "missing ffprobe stops before any cost" "ffprobe not found" env PATH=/nonexistent "$(command -v "$PY")" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Tamsin Vell" --dry-run
+  refuses "cost cap stops the run" "exceeds cap" "$PY" "$TR" --input-file "$T/host.wav" --output-dir "$EP" --guest-name "Tamsin Vell" --cost-cap-usd 0.0001 --dry-run
   check "request body, polling and outputs (API mocked)" "$PY" - "$TR" "$T/tr-out" <<'PYEOF'
 import importlib.util, json, sys
 from pathlib import Path
@@ -192,15 +205,15 @@ def resp(payload):
     r = mock.Mock(ok=True); r.json.return_value = payload; return r
 with mock.patch.object(tr.requests, "get", return_value=resp(done)):
     t = tr.poll_transcript("key", "id")
-sm = tr.build_speaker_map(t["utterances"], "Sam Host", "Dana Reyes")
-clean = tr.write_clean(t, sm, out, 2, "Dana Reyes", "Sam Host", "example-show").read_text()
-assert "[01:02] **Dana Reyes:** there friend" in clean and "duration_seconds: 125" in clean
-assert 'speakers: ["Sam Host", "Dana Reyes"]' in clean and "business" not in clean
-ch = tr.write_chapters(t, out, 2, "Dana Reyes").read_text()
+sm = tr.build_speaker_map(t["utterances"], "Sam Host", "Tamsin Vell")
+clean = tr.write_clean(t, sm, out, 2, "Tamsin Vell", "Sam Host", "example-show").read_text()
+assert "[01:02] **Tamsin Vell:** there friend" in clean and "duration_seconds: 125" in clean
+assert 'speakers: ["Sam Host", "Tamsin Vell"]' in clean and "business" not in clean
+ch = tr.write_chapters(t, out, 2, "Tamsin Vell").read_text()
 assert "00:00 Opening" in ch and "They say hello." in ch
 words = json.loads(tr.write_words(t, out).read_text())
 assert words[0]["end"] == 400 and "confidence" not in words[0]
-none = tr.write_chapters({"status": "completed"}, out, 2, "Dana Reyes").read_text()
+none = tr.write_chapters({"status": "completed"}, out, 2, "Tamsin Vell").read_text()
 assert "no sections" in none
 
 err = mock.Mock(ok=True); err.json.return_value = {"status": "error", "error": "bad audio"}
@@ -210,8 +223,9 @@ with mock.patch.object(tr.requests, "get", return_value=err):
     except RuntimeError as e:
         assert "bad audio" in str(e)
 PYEOF
+  PY="$PY_STD"
 else
-  skip=$((skip+1)); echo "  skip: transcribe.py tests (PYTHON cannot import requests and dotenv)"
+  skip=$((skip+1)); echo "  skip: transcribe.py tests (no requests or dotenv: do the Python packages step in podcast/README.md)"
 fi
 
 # --- thumbnail-generate -----------------------------------------------------
@@ -219,8 +233,9 @@ echo "thumbnail-generate"
 GEN="$PODCAST/thumbnail-generate/scripts/generate.py"
 # A 1x1 transparent PNG is enough to stand in for a cutout.
 "$PY" -c "import base64,sys; open(sys.argv[1],'wb').write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='))" "$EP/guest-cutout.png"
-check "dry run writes the HTML" "$PY" "$GEN" --episode-folder "$EP" --guest-name "Dana Reyes" --hook "THE ROAST|_NOBODY|_WANTED|*TO BUY" --dry-run
+check "dry run writes the HTML" "$PY" "$GEN" --episode-folder "$EP" --guest-name "Tamsin Vell" --hook "THE ROAST|_NOBODY|_WANTED|*TO BUY" --dry-run
 check "HTML has no unfilled placeholders" bash -c "! grep -q '{{' '$EP/thumbnail.html'"
+check "thumbnail uses the settings colours" bash -c "grep -q 'background: #141414' '$EP/thumbnail.html' && grep -q 'background: #2B2B2B' '$EP/thumbnail.html'"
 check "solo layout drops the host" bash -c "grep -q '68%' '$EP/thumbnail.html' && ! grep -q 'class=\"host\"' '$EP/thumbnail.html'"
 refuses "hook needs one highlight" "exactly one highlight" "$PY" "$GEN" --episode-folder "$EP" --guest-name "D" --hook "A|_B" --dry-run
 refuses "hook rejects full stops" "no full stops" "$PY" "$GEN" --episode-folder "$EP" --guest-name "D" --hook "A.|*B" --dry-run
@@ -228,6 +243,7 @@ refuses "missing cutout is explained" "guest cutout not found" "$PY" "$GEN" --ep
 
 # --- shorts -----------------------------------------------------------------
 echo "shorts"
+sed 's/@Tuesday/@Wednesday/' "$EP/clips.md" > "$T/bad-anchor.md"
 S="$PODCAST/shorts/scripts"
 cp "$T/clip-mov.mov" "$EP/shorts/raw/extra.mov"
 check "normalise-audio.sh handles mp4 and mov" bash "$S/normalise-audio.sh" "$EP/shorts/raw"
@@ -235,6 +251,7 @@ check "normalised files play and hold the rate" bash -c "for f in clip-1.mp4 ext
 rm -rf "$EP/shorts/raw/normalised" "$EP/shorts/raw/extra.mov"
 check "build-compositions.js builds two clips" node "$S/build-compositions.js" --episode-dir "$EP"
 check "compositions are filled in" bash -c "! grep -q '{{' '$EP/shorts/composition-1/index.html' && grep -q 'id=\"clip-2\"' '$EP/shorts/composition-2/index.html' && test -f '$EP/shorts/composition-1/fonts/Gelasio-Variable.ttf' && test -f '$EP/shorts/composition-1/clip.mov'"
+check "shorts use the settings colours" bash -c "for c in '#D4D4D4' '#FFFFFF' '#A8A8A8' '#2B2B2B'; do grep -q \"\$c\" '$EP/shorts/composition-1/index.html' || exit 1; done"
 check "beats and glossary are applied" node -e '
   const html = require("fs").readFileSync(process.argv[1], "utf8");
   const beats = JSON.parse(html.match(/var BEATS = (\[.*?\]);/)[1]);
@@ -244,14 +261,14 @@ check "beats and glossary are applied" node -e '
   assert.strictEqual(beats[0].main, "a tuesday");
   assert.strictEqual(beats[0].start, 0.9);
   assert.ok(beats[1].start >= beats[0].end + 0.4, "beats must not stack");
-  assert.ok(words.some(w => w.text === "Fernhill"), "glossary fix missing");
+  assert.ok(words.some(w => w.text === "Quillfen"), "glossary fix missing");
 ' "$EP/shorts/composition-1/index.html"
 check "text rules hold" node -e '
   const b = require(process.argv[1]);
   const assert = require("assert");
-  assert.deepStrictEqual(b.splitAccentMain("He told me his. salary."), { accent: "He told me his", main: "salary" });
+  assert.deepStrictEqual(b.splitAccentMain("He told me his. margin."), { accent: "He told me his", main: "margin" });
   assert.strictEqual(b.splitAccentMain("Is it. working?").main, "working?");
-  assert.strictEqual(b.lowercaseMain("AI = CEO Then"), "AI = CEO then");
+  assert.strictEqual(b.lowercaseMain("VAT = ROI Then"), "VAT = ROI then");
   const three = b.splitAccentMain("Well. one two three.");
   assert.strictEqual(three.main, "two three");
   assert.strictEqual(three.accent, "Well one");
@@ -263,7 +280,8 @@ touch "$EP/shorts/renders/clip-1-final.mp4"
 mkdir -p "$T/archive"
 cp -R "$EP" "$T/ep-copy"
 check "archive-media.sh moves media and leaves a pointer" bash -c "bash '$S/archive-media.sh' '$T/ep-copy' '$T/archive/ep' && test -f '$T/archive/ep/shorts/raw/clip-1.mp4' && test -f '$T/ep-copy/shorts/MEDIA.md' && test ! -f '$T/ep-copy/shorts/composition-1/clip.mov' && test -f '$T/ep-copy/shorts/composition-1/index.html'"
-refuses "archive stops if the drive is missing" "Is the drive mounted" bash "$S/archive-media.sh" "$EP" "/Volumes/NoSuchDrive-$$/ep"
+refuses "missing anchor stops the build" "Not ready to render" node "$S/build-compositions.js" --episode-dir "$EP" --clips-spec "$T/bad-anchor.md"
+refuses "archive stops if the drive is missing" "check the drive is mounted" bash "$S/archive-media.sh" "$EP" "/Volumes/NoSuchDrive-$$/ep"
 rm -f "$EP/shorts/renders/clip-1-final.mp4"
 
 # --- distribute -------------------------------------------------------------
@@ -282,6 +300,7 @@ check "metadata is built from clips and settings" node -e '
   const assert = require("assert");
   assert.deepStrictEqual(Object.keys(m), ["clip-1", "clip-2"]);
   assert.ok(m["clip-1"].title.startsWith("They rang on a Tuesday"));
+  assert.ok(!/\p{Extended_Pictographic}/u.test(m["clip-1"].title), "emoji in title");
   assert.ok(!/link in comments/i.test(m["clip-1"].description));
   assert.ok(m["clip-1"].description.includes("Host: Sam Host"));
   assert.ok(m["clip-1"].description.includes("#exampleshow"));
@@ -291,7 +310,16 @@ check "metadata is built from clips and settings" node -e '
   assert.ok(!m["clip-1"].tags.some(t => t.includes("`")));
 ' "$EP/distribute/youtube-metadata.json"
 
+check "a quoted ~ in --episode-dir works" env HOME="$T" node "$D/build-youtube-metadata.js" --episode-dir "~/$(basename "$EP")"
 check "upload dry run calls nothing and writes nothing" bash -c "node '$D/upload-all-to-youtube.js' --episode-dir '$EP' --dry-run | grep 'would upload' && test ! -f '$EP/distribute/youtube-uploads.json'"
+node -e '
+  const fs = require("fs");
+  const c = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  c.show.slug = "example-show"; fs.writeFileSync(process.argv[2], JSON.stringify(c));
+  c.show.slug = "test-show"; c.publishing.youtube.channel_id = ""; fs.writeFileSync(process.argv[3], JSON.stringify(c));
+' "$T/config.json" "$T/placeholder.json" "$T/nochannel.json"
+refuses "real upload refuses unedited example settings" "still has the example show" node "$D/upload-all-to-youtube.js" --episode-dir "$EP" --config "$T/placeholder.json"
+check "empty channel ID warns that the guard is off" bash -c "node '$D/upload-all-to-youtube.js' --episode-dir '$EP' --config '$T/nochannel.json' --dry-run 2>&1 | grep 'channel guard is off'"
 refuses "real upload with no OAuth client stops" "OAuth client file missing" node "$D/upload-all-to-youtube.js" --episode-dir "$EP"
 refuses "episode upload needs its text files" "episode-title.txt missing" node "$D/upload-all-to-youtube.js" --episode-dir "$EP" --dry-run --episode-video "$EP/shorts/raw/clip-1.mp4"
 
@@ -345,21 +373,24 @@ check "GHL dry run needs no token" bash -c "env -u GHL_PRIVATE_TOKEN node '$D/pu
 
 check "site off skips cleanly" bash -c "node '$D/update-episode-page.js' --episode-dir '$EP' | grep 'nothing to do'"
 mkdir -p "$T/site"
-printf '%s\n' '# Page' '' '## Watch the Episode' '' 'embed' '' '## Full Transcript' '' 'words' > "$T/site/episode-2-dana-reyes.mdx"
+printf '%s\n' '# Page' '' '## Watch the Episode' '' 'embed' '' '## Full Transcript' '' 'words' > "$T/site/episode-2-tamsin-vell.mdx"
 cat > "$EP/distribute/youtube-uploads.json" <<'EOF'
 { "clip-1": { "video_id": "AAA", "privacy": "unlisted" },
   "clip-2": { "video_id": "BBB", "privacy": "private", "publish_at": "2099-01-01T00:00:00Z" },
   "episode": { "video_id": "EEE", "url": "https://www.youtube.com/watch?v=EEE", "privacy": "unlisted" } }
 EOF
-check "site update patches the page and leaves out private clips" bash -c "node '$D/update-episode-page.js' --episode-dir '$EP' --config '$T/site.json' --write | grep '1 still private' && grep -q 'YouTubeShort id=\"AAA\"' '$T/site/episode-2-dana-reyes.mdx' && ! grep -q BBB '$T/site/episode-2-dana-reyes.mdx' && grep -q '## Full Transcript' '$T/site/episode-2-dana-reyes.mdx'"
-check "a second patch replaces, not repeats" bash -c "node '$D/update-episode-page.js' --episode-dir '$EP' --config '$T/site.json' --write >/dev/null && [ \$(grep -c '^## Highlights' '$T/site/episode-2-dana-reyes.mdx') = 1 ] && grep -q '## Full Transcript' '$T/site/episode-2-dana-reyes.mdx'"
+check "site update patches the page and leaves out private clips" bash -c "node '$D/update-episode-page.js' --episode-dir '$EP' --config '$T/site.json' --write | grep '1 still private' && grep -q 'YouTubeShort id=\"AAA\"' '$T/site/episode-2-tamsin-vell.mdx' && ! grep -q BBB '$T/site/episode-2-tamsin-vell.mdx' && grep -q '## Full Transcript' '$T/site/episode-2-tamsin-vell.mdx'"
+check "a second patch replaces, not repeats" bash -c "node '$D/update-episode-page.js' --episode-dir '$EP' --config '$T/site.json' --write >/dev/null && [ \$(grep -c '^## Highlights' '$T/site/episode-2-tamsin-vell.mdx') = 1 ] && grep -q '## Full Transcript' '$T/site/episode-2-tamsin-vell.mdx'"
 check "with no site, posts link to YouTube" bash -c "node '$D/build-linkedin-drafts.js' --episode-dir '$EP' --start-date 2026-07-06 >/dev/null && grep -q 'watch?v=EEE' '$EP/distribute/linkedin-drafts.json'"
 
-if "$PY" -c "import googleapiclient, google_auth_oauthlib" 2>/dev/null; then
+refuses "missing Google packages are explained" "Set up the venv" python3 -S "$D/youtube-upload.py" --help
+if "$PY_YT" -c "import googleapiclient, google_auth_oauthlib" 2>/dev/null; then
+  PY="$PY_YT"
   check "youtube-upload.py --help" "$PY" "$D/youtube-upload.py" --help
   check "youtube-manage.py --help" "$PY" "$D/youtube-manage.py" --help
   check "youtube-thumbnail.py --help" "$PY" "$D/youtube-thumbnail.py" --help
   refuses "upload with no token or client stops" "OAuth client file missing" "$PY" "$D/youtube-upload.py" --video "$EP/shorts/raw/clip-1.mp4" --title t --description d --credentials "$T/none.json" --token-store "$T/none-token.json"
+  refuses "an empty --credentials is explained" "OAuth client file missing" "$PY" "$D/youtube-manage.py" --credentials "" --token-store "$T/none-token.json" privacy ABC private
   refuses "manage with no token or client stops" "OAuth client file missing" "$PY" "$D/youtube-manage.py" --credentials "$T/none.json" --token-store "$T/none-token.json" privacy ABC private
   refuses "thumbnail with a missing image stops" "Image not found" "$PY" "$D/youtube-thumbnail.py" --credentials "$T/none.json" --token-store "$T/none-token.json" ABC "$T/none.png"
   check "token save and reload keep owner-only permissions (Google mocked)" "$PY" - "$D" "$T/tok/token.json" <<'PYEOF'
@@ -378,7 +409,7 @@ assert stat.S_IMODE(os.stat(token).st_mode) == 0o600
 assert flow.run_local_server.call_args.kwargs["authorization_prompt_message"] == ""
 PYEOF
 else
-  skip=$((skip+1)); echo "  skip: YouTube script tests (PYTHON cannot import the Google packages)"
+  skip=$((skip+1)); echo "  skip: YouTube script tests (no Google packages: do the Python packages step in podcast/README.md)"
 fi
 
 echo ""

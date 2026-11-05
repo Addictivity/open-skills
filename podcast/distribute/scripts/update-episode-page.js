@@ -23,7 +23,7 @@ if (require.main === module) main();
 
 function main() {
   const args = lib.parseArgs(process.argv.slice(2));
-  const EP_DIR = args['episode-dir'] || args.e;
+  const EP_DIR = lib.expandHome(args['episode-dir'] || args.e);
   if (!EP_DIR) lib.fail('Usage: node update-episode-page.js --episode-dir "/path/to/Episode N - Guest" [--write]');
 
   const config = lib.loadConfig(args.config);

@@ -9,6 +9,7 @@
 # Writes: <out_dir>/host_rms.txt and <out_dir>/guest_rms.txt
 # Each line pair is "frame: ... pts_time:<t>" then "lavfi.astats.Overall.RMS_level=<dB>".
 set -euo pipefail
+command -v ffmpeg >/dev/null || { echo "Error: ffmpeg not found. Install it first (on a Mac: brew install ffmpeg)." >&2; exit 1; }
 if [ "$#" -lt 3 ]; then
   echo "Usage: extract-rms.sh <host_mic.wav> <guest_mic.wav> <out_dir> [window_s] [sample_rate]" >&2
   exit 1
@@ -21,9 +22,9 @@ one() {  # <in> <out.txt>
   # output folder and use a bare filename: paths with spaces or colons would break it.
   local abs_in
   abs_in="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-  (cd "$OUT" && ffmpeg -hide_banner -nostats -y -i "$abs_in" \
+  (cd "$OUT" && ffmpeg -hide_banner -loglevel error -nostats -y -i "$abs_in" \
     -af "asetnsamples=n=${N}:p=0,astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file=$2" \
-    -f null - 2>/dev/null)
+    -f null -)
 }
 one "$HOST"  "host_rms.txt"
 one "$GUEST" "guest_rms.txt"

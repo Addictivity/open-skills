@@ -16,7 +16,13 @@ Nine Claude Code skills for producing a video interview podcast. Install steps a
 | 8 | `/distribute` | YouTube uploads with a channel guard, LinkedIn paste pack or GoHighLevel drafts, site highlights | LinkedIn and site steps are optional |
 | 9 | `/podcast-guest-comms` | Guest review email and asset pack, as drafts | |
 
-After step 9 the guest approves, and you flip the episode public. Nothing goes public before that. See the guest-approval gate in `/distribute`.
+Nothing goes public until the guest approves, so the last three steps run in this order:
+
+1. `/distribute` uploads the episode and clips unlisted and writes the LinkedIn paste pack. Don't schedule any posts yet.
+2. `/podcast-guest-comms` drafts the review email, which you send.
+3. Once the guest approves, flip the episode public, schedule the posts and send the asset pack.
+
+Then archive the video with `archive-media.sh` from `/shorts`. Doing it earlier moves files that the steps above still need.
 
 Start a skill with its slash command or by asking in plain words, such as "transcribe episode 3".
 
@@ -39,16 +45,17 @@ Start a skill with its slash command or by asking in plain words, such as "trans
 
 ### Without Palmier
 
-`/podcast-edit` drives Palmier Pro through its MCP server, and nothing else in the pack replaces that. Two practical options:
+`/podcast-edit` drives Palmier Pro through its MCP server, and nothing else in the pack replaces that.
 
-- **Use the cut list.** `extract-rms.sh`, `diarize.py` and `build_edl.py` run without Palmier. They give you kept ranges and a speaker-led camera cut list as frame-accurate JSON, and you place the clips by hand in your own editor.
-- **Skip the skill.** Edit however you like and start at `/podcast-transcript` with your finished master. For `/shorts`, export the vertical clips from your editor as `shorts/raw/clip-N.mp4`.
+**Most people without Palmier should skip the skill.** Edit however you like and start at `/podcast-transcript` with your finished master. For `/shorts`, export the vertical clips from your editor as `shorts/raw/clip-N.mp4`.
+
+**The cut-list scripts are a partial option.** `extract-rms.sh`, `diarize.py` and `build_edl.py` run without Palmier and give you a speaker-led camera cut list. You have to measure each camera's sync offset and choose the kept ranges yourself. The output is JSON that no editor imports, so an hour-long episode can mean hundreds of shots to place by hand.
 
 ## Setup
 
 ### Settings
 
-Copy `config.example.json` to `~/.config/podcast-skills/config.json` and fill it in. Scripts look for `--config`, then `$PODCAST_CONFIG`, then that path.
+Copy `config.example.json` to `~/.config/podcast-skills/config.json`. Replace everything in `show` and `publishing.youtube`, and add your `glossary`. Check that `paths` suits you. The other values work as they are, and you can ignore `site` while `enabled` is false. Real uploads refuse to run while `show.slug` is still `example-show`. Scripts look for `--config`, then `$PODCAST_CONFIG`, then that path.
 
 | Block | Holds |
 |-------|-------|
@@ -61,6 +68,20 @@ Copy `config.example.json` to `~/.config/podcast-skills/config.json` and fill it
 | `publishing` | YouTube channel and CTA block. LinkedIn mode and schedule |
 | `transcription` | Model, language, cost per hour, cost cap |
 | `guest_comms` | Asset pack folder and email sign-off |
+
+`brand.colours` ships as a neutral set, so swap in your own:
+
+| Colour | What it paints |
+|--------|----------------|
+| `thumbnail_background` | Thumbnail canvas |
+| `thumbnail_strip` | Dark strips behind hook lines, and name boxes |
+| `thumbnail_highlight` | The one highlighted hook line |
+| `thumbnail_text` | Thumbnail text and name box borders |
+| `short_accent` | The small line above the big word on a short |
+| `short_main` | The big word on a short |
+| `short_caption_future` | Captions not yet spoken |
+| `short_caption_read` | Captions already spoken, and the active word |
+| `short_caption_pill` | The pill behind the active word |
 
 ### Keys
 
@@ -95,15 +116,17 @@ The pack bundles Sora, DM Sans and Gelasio, all under the SIL Open Font License,
 
 ### Check your setup
 
+From the `open-skills` folder you cloned:
+
 ```bash
-PYTHON=~/.claude/skills/distribute/.venv/bin/python bash podcast/tests/run-offline.sh
+bash podcast/tests/run-offline.sh
 ```
 
-Runs every script with no accounts or keys. For the transcript tests too, use a venv with both `requirements.txt` files installed.
+Runs every script with no accounts or keys, using the two venvs from the step above. If you skipped those, the tests that need them are reported as skipped.
 
 ## The episode folder
 
-Everything lives in `paths.episodes_root/Episode N - Guest Name/`. Skills read what earlier ones wrote. Keep video out of this folder if it syncs: raw footage and renders belong in `paths.media_archive`.
+Everything lives in `paths.episodes_root/Episode N - Guest Name/`. Skills read what earlier ones wrote. Raw footage and the master belong in `paths.media_archive`, which can be any folder and doesn't need to be an external drive. Short clips and renders stay in the episode folder until the last step above, so if the folder syncs, expect some large files for a while.
 
 | File | Written by | Read by |
 |------|------------|---------|
@@ -122,16 +145,18 @@ Skills read this frontmatter, so keep the field names:
 
 ```markdown
 ---
-title: Episode 2 - Dana Reyes
+title: Episode 2 - Tamsin Vell
 episode: 2
-guest: Dana Reyes
+guest: Tamsin Vell
 guest_role: Founder
-guest_company: Fernhill Coffee
+guest_company: Quillfen Coffee
+guest_company_url: https://example.com
 guest_linkedin: https://www.linkedin.com/in/example/
+recorded: 2026-10-01
 status: recorded
 ---
 
-# Episode 2 - Dana Reyes
+# Episode 2 - Tamsin Vell
 
 ## Links
 
@@ -141,6 +166,8 @@ YouTube: (added once uploaded)
 
 (anything the guest asked to cut or check)
 ```
+
+Add a line under `## Links` or in `## Guest requests` whenever you learn something later skills should know. The YouTube line is filled in after `/distribute`.
 
 ### Pre-call brief (optional)
 

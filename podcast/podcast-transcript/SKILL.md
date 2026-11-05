@@ -44,7 +44,7 @@ Tell the user the episode, the source (URL or file), the files that will be writ
 Normal case: post-production runs before YouTube, so there is no URL yet. Extract a small mono audio file from the master and pass that. Transcript timing then equals master timing, which `/shorts` relies on.
 
 ```bash
-ffmpeg -i "<master>.mp4" -vn -c:a aac -b:a 128k -ac 1 /tmp/episode-audio.m4a
+ffmpeg -y -i "<master>.mp4" -vn -c:a aac -b:a 128k -ac 1 /tmp/episode-audio.m4a
 
 ~/.claude/skills/podcast-transcript/.venv/bin/python \
   ~/.claude/skills/podcast-transcript/scripts/transcribe.py \
@@ -66,7 +66,7 @@ Check the four files exist: `transcript-raw.txt`, `transcript-clean.md`, `chapte
 
 ### 6. Update the episode README
 
-Mark the transcript as done and update `status:` if the README tracks one.
+Note in the episode README that the transcript is done, and update `status:` if the README tracks one.
 
 ### 7. Report back
 

@@ -23,6 +23,7 @@ that would bill you.
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -31,8 +32,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import requests
-from dotenv import load_dotenv
+try:
+    import requests
+    from dotenv import load_dotenv
+except ImportError as e:
+    sys.exit(f"ERROR: Python package missing ({e.name}). Set up the venv once:\n"
+             "  cd ~/.claude/skills/podcast-transcript && python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt\n"
+             "Then run this script with ~/.claude/skills/podcast-transcript/.venv/bin/python")
 
 ASSEMBLY_API_BASE = "https://api.assemblyai.com/v2"
 DEFAULT_CONFIG = "~/.config/podcast-skills/config.json"
@@ -316,8 +322,10 @@ def main():
         print(f"Loaded env from: {env_path}", flush=True)
 
     api_key = os.environ.get("ASSEMBLYAI_API_KEY")
+    if api_key and api_key.startswith("your-"):  # the placeholder from podcast/README.md
+        api_key = None
     if not api_key and not args.dry_run:
-        sys.exit("ERROR: ASSEMBLYAI_API_KEY not found.\nSet it in the environment, in paths.env_file, or pass --env-file <path>.")
+        sys.exit("ERROR: ASSEMBLYAI_API_KEY not found, or still the placeholder.\nSet it in the environment, in paths.env_file, or pass --env-file <path>.")
 
     local_path = None
     if args.url:
@@ -332,6 +340,8 @@ def main():
         local_path = Path(args.input_file).expanduser().resolve()
         if not local_path.exists():
             sys.exit(f"ERROR: --input-file does not exist: {local_path}")
+        if not shutil.which("ffprobe"):
+            sys.exit("ERROR: ffprobe not found, so the cost cap cannot check this file. It comes with ffmpeg: install that first (on a Mac: brew install ffmpeg).")
         duration_s = probe_duration(local_path)
         print(f"Local file: {local_path.name}", flush=True)
 

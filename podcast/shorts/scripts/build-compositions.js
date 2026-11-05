@@ -30,11 +30,14 @@ if (require.main === module) main();
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
-  const EPISODE_DIR = args['episode-dir'] || args.e;
+  const EPISODE_DIR = args['episode-dir'] ? expandHome(args['episode-dir']) : args.e;
   if (!EPISODE_DIR) {
     console.error('Usage: node build-compositions.js --episode-dir "/path/to/Episode N - Guest"');
     process.exit(1);
   }
+
+  try { execFileSync('ffprobe', ['-version'], { stdio: 'ignore' }); }
+  catch { fail('ffprobe not found. It comes with ffmpeg, so install that first (on a Mac: brew install ffmpeg).'); }
 
   const config = loadConfig(args.config);
   const SHORTS_DIR = path.join(EPISODE_DIR, 'shorts');
@@ -71,6 +74,7 @@ function main() {
     const transcriptPath = path.join(TRANSCRIPTS_DIR, slug + '.json');
     if (!fs.existsSync(transcriptPath)) {
       console.error(`  x composition-${compN} (${filename}): transcript missing at ${transcriptPath}`);
+      process.exitCode = 1;
       return;
     }
 
@@ -98,11 +102,11 @@ function main() {
       FONT_ACCENT: fonts.accent,
       FONT_MAIN: fonts.main,
       FONT_CAPTION: fonts.caption,
-      COLOUR_ACCENT: colours.short_accent || '#F0E23A',
-      COLOUR_MAIN: colours.short_main || '#F5EFE1',
-      COLOUR_CAPTION_FUTURE: colours.short_caption_future || '#B5B5B5',
+      COLOUR_ACCENT: colours.short_accent || '#D4D4D4',
+      COLOUR_MAIN: colours.short_main || '#FFFFFF',
+      COLOUR_CAPTION_FUTURE: colours.short_caption_future || '#A8A8A8',
       COLOUR_CAPTION_READ: colours.short_caption_read || '#FFFFFF',
-      COLOUR_CAPTION_PILL: colours.short_caption_pill || '#071647',
+      COLOUR_CAPTION_PILL: colours.short_caption_pill || '#2B2B2B',
     };
     const html = template.replace(/\{\{([A-Z_]+)\}\}/g, (whole, key) => (key in values ? values[key] : whole));
     fs.writeFileSync(path.join(compDir, 'index.html'), html);
@@ -110,7 +114,8 @@ function main() {
     console.log(`  ok composition-${compN} <- ${filename} (${duration.toFixed(2)}s, ${words.length} words, ${beats.length} beat${beats.length === 1 ? '' : 's'})`);
   });
 
-  console.log(`\nDone. Next: bash render-all.sh "${SHORTS_DIR}"`);
+  if (process.exitCode) console.error('\nNot ready to render: fix the problems marked above, then run this again.');
+  else console.log(`\nDone. Next: bash render-all.sh "${SHORTS_DIR}"`);
 }
 
 
@@ -237,6 +242,7 @@ function parseBeatsForClip(md, compN, durationSeconds, transcriptWords) {
         searchFrom = hit.start;
       } else {
         console.warn(`    ! Clip ${compN}: anchor "@${b.anchor}" not found in transcript, using scaled spec timing. Fix it before rendering.`);
+        process.exitCode = 1;
       }
     } else if (!b.anchor) {
       console.warn(`    ! Clip ${compN}: beat "${b.text}" has no @anchor, using scaled spec timing.`);
@@ -244,6 +250,10 @@ function parseBeatsForClip(md, compN, durationSeconds, transcriptWords) {
     // never overlap the previous beat; leave the end clear for the fade
     start = +Math.max(start, prevEnd + 0.4).toFixed(2);
     start = +Math.min(start, Math.max(0, durationSeconds - DISPLAY_SECONDS - 0.7)).toFixed(2);
+    if (prevEnd > 0 && start < prevEnd) {
+      console.warn(`    ! Clip ${compN}: beat "${b.text}" overlaps the one before, because the clip ends too soon. Remove a beat or lengthen the clip.`);
+      process.exitCode = 1;
+    }
     const end = +Math.min(start + DISPLAY_SECONDS, durationSeconds - 1.2).toFixed(2);
     prevEnd = end;
     const { accent, main } = splitAccentMain(b.text);
@@ -273,7 +283,7 @@ function splitAccentMain(text) {
     accent = words.slice(0, -mainWordCount).join(' ');
   }
 
-  // Count only tokens with letters or digits ("AI = CEO" is two words). Shift any excess into the accent.
+  // Count only tokens with letters or digits ("VAT = ROI" is two words). Shift any excess into the accent.
   const isWord = t => /[a-zA-Z0-9]/.test(t);
   const tokens = main.split(/\s+/);
   while (tokens.filter(isWord).length > 2) {

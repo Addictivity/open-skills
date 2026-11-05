@@ -4,6 +4,7 @@
 .env.*
 *.env
 client_secret*.json
+*client-secret*.json
 *credentials*.json
 *token*.json
 *.pem

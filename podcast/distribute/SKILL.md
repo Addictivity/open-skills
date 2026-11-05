@@ -1,6 +1,6 @@
 ---
 name: distribute
-description: Distribute a podcast episode and its shorts. Use when the user asks to "distribute the shorts for episode N", "upload the shorts to YouTube", "schedule the LinkedIn posts for [guest]", "launch the promotion campaign" or anything about getting rendered video out to platforms. Assumes /shorts has produced the MP4s. YouTube upload uses your own Google OAuth. LinkedIn (a paste pack, or optional GoHighLevel drafts) and the website update are optional steps you can turn off in settings.
+description: Distribute a podcast episode and its shorts. Use when the user asks to "distribute the shorts for episode N", "upload the shorts to YouTube", "schedule the LinkedIn posts for [guest]", "write the LinkedIn posts for the clips", "launch the promotion campaign", "make the episode public" or anything about getting rendered video out to platforms. Assumes /shorts has produced the MP4s. YouTube upload uses your own Google OAuth. LinkedIn (a paste pack, or optional GoHighLevel drafts) and the website update are optional steps you can turn off in settings.
 version: 1.0.0
 ---
 
@@ -28,7 +28,7 @@ Read the settings file first: `$PODCAST_CONFIG`, otherwise `~/.config/podcast-sk
 
 ## The guest-approval gate
 
-**Nothing public until the guest approves the unlisted episode.** Unlisted or scheduled video and draft posts are fine. The public website is not: leave the episode page and any shorts row unpublished until the guest replies. The review email (`/podcast-guest-comms`) goes out first, and the launch waits for the answer.
+**Nothing public until the guest approves the unlisted episode.** Unlisted video and draft posts are fine. The public website is not: leave the episode page and any shorts row unpublished until the guest replies. So run steps 1 to 4 and build the paste pack, send the review email with `/podcast-guest-comms`, and do the rest once the guest answers. Scheduling a post natively in LinkedIn or a video in YouTube publishes it with no further check, so leave those until then.
 
 Check titles for guest sensitivity before upload as well: provocative about the topic, always positive about the guest. Retitling after a guest objects is a worse conversation than checking first.
 
@@ -38,10 +38,18 @@ Check titles for guest sensitivity before upload as well: provocative about the 
    ```bash
    cd ~/.claude/skills/distribute && python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
    ```
-2. **Your own Google OAuth client.** In Google Cloud Console: create a project, enable YouTube Data API v3, configure the OAuth consent screen, add your Google account as a test user, create an OAuth client of type Desktop app, and download the JSON to `paths.google_client_secret`. Keep it outside any repo.
+2. **Your own Google OAuth client.** This takes about 15 minutes and costs nothing. Google renames these screens from time to time. At https://console.cloud.google.com :
+   1. Create a project, using the project picker at the top of the page.
+   2. Under APIs & Services, Library, find YouTube Data API v3 and enable it.
+   3. Set up the OAuth consent screen. Choose External as the audience and leave it in Testing mode.
+   4. Add the Google account that owns your channel as a test user.
+   5. Under Clients or Credentials, create an OAuth client of type Desktop app, and download its JSON.
+   6. Move that file to `paths.google_client_secret`, keeping the exact name in your settings. Keep it outside any repo.
+
+   At first sign-in Google warns that the app isn't verified. That's expected for your own client in Testing mode: choose Advanced, then continue.
 3. **Find your channel ID** in YouTube Studio under Settings, Channel, Advanced settings, and put it in `publishing.youtube.channel_id`.
 
-**Quota.** The YouTube Data API gives a new project a limited daily quota, and each upload costs a large share of it. Check the current numbers in the Google Cloud console before a big batch. A batch that hits the limit can resume the next day, because uploaded clips are skipped.
+**Quota and private locks.** The YouTube Data API gives a new project a limited daily quota. Check the current numbers in the Google Cloud console before a big batch. A batch that hits the limit can resume the next day, because uploaded clips are skipped. Google used to lock uploads from unaudited projects to private, and reversed that on 2 November 2026. If a first upload still shows as locked in YouTube Studio, stop there and check Google's current policy, because a locked video won't work as a guest review link.
 
 Tokens are saved to `paths.tokens_dir` with owner-only permissions. Never put them in a repo.
 
@@ -70,6 +78,8 @@ node ~/.claude/skills/distribute/scripts/build-youtube-metadata.js --episode-dir
 
 Writes `distribute/youtube-metadata.json`: LinkedIn hooks become titles, captions become descriptions, and tags come from your settings and the episode.
 
+**With no website, the first upload of clips has no episode link,** because clips go first and the episode doesn't exist yet. Add the link to each Short's description in YouTube Studio afterwards. The LinkedIn posts pick it up by themselves if you build them after the upload.
+
 ### 3. Upload
 
 For the full episode, first save each chosen field from `youtube-description.md` to its own file in `distribute/`: `episode-title.txt`, `episode-description.txt`, `episode-tags.txt`. Then:
@@ -93,10 +103,13 @@ First run opens a browser for OAuth consent. Output goes to `distribute/youtube-
 
 `youtube-manage.py` and `youtube-thumbnail.py` need a broader scope than upload, so they share a separate token file and ask for their own consent.
 
+Set these first. The last two come from your settings file, shown here with the example values.
+
 ```bash
 PY=~/.claude/skills/distribute/.venv/bin/python
 S=~/.claude/skills/distribute/scripts
-# CREDS is paths.google_client_secret, MANAGE is paths.tokens_dir + /youtube-manage-token.json
+CREDS=~/.config/podcast-skills/youtube-client-secret.json    # paths.google_client_secret
+MANAGE=~/.config/podcast-skills/tokens/youtube-manage-token.json    # paths.tokens_dir + /youtube-manage-token.json
 
 $PY $S/youtube-thumbnail.py --credentials "$CREDS" --token-store "$MANAGE" <VIDEO_ID> "<episode>/thumbnail.png"
 $PY $S/youtube-manage.py --credentials "$CREDS" --token-store "$MANAGE" schedule <VIDEO_ID> 2026-07-09T13:00:00Z
@@ -105,6 +118,8 @@ $PY $S/youtube-manage.py --credentials "$CREDS" --token-store "$MANAGE" privacy 
 ```
 
 Only flip the episode public once the guest has approved.
+
+These commands don't update `distribute/youtube-uploads.json`. If you schedule a clip or change its privacy, edit its `privacy` and `publish_at` there too, because the website step and the guest emails read that file.
 
 ### 5. LinkedIn (optional)
 
@@ -146,8 +161,10 @@ Writes `distribute/highlights.json` (`id` and `title` per clip). Use that in you
 ### 7. Finish
 
 - Delete any test uploads from YouTube Studio.
+- Add the YouTube link to the episode README's `YouTube:` line, and fill in `youtube_url`, `youtube_id` and `publication_date` in `episode-page.md` if you have one.
 - Toggle videos to public once the guest has approved, ideally before the first scheduled post goes out.
 - Approve the posts, or schedule them from the paste pack.
+- After `/podcast-guest-comms`, archive the video (step 10 of `/shorts`).
 
 ## Re-upload recipe
 

@@ -26,7 +26,7 @@ The episode folder needs:
 - `transcript-clean.md` (required)
 - `chapters.md` (required)
 - `youtube-description.md` (required, the page reuses its title and summary)
-- `pre-call-brief.md` (optional, for the angle and producer notes)
+- `pre-call-brief.md` (optional, for the angle)
 - `README.md` (episode number, guest, role, company, `guest_linkedin`, YouTube URL)
 
 If the transcript or description is missing, stop with: "Run `/podcast-transcript` and `/youtube-description` first."
@@ -47,13 +47,13 @@ If the transcript or description is missing, stop with: "Run `/podcast-transcrip
 | `transcript-clean.md` | the full transcript, speaker labels, `duration_seconds`, `word_count` |
 | `chapters.md` | the timestamp block |
 | `youtube-description.md` | the chosen title, summary, "in this episode" bullets, resources |
-| `pre-call-brief.md` | the guest intro (basis of the bio), producer notes (the angle) |
+| `pre-call-brief.md` | the guest intro (basis of the bio), the angle |
 | Settings file | show description, audience, voice rules, glossary |
 | `content-lessons.md` in `paths.episodes_root` | corrections from earlier episodes, if the file exists |
 
 ### 3. Generate the slug
 
-Pattern: `episode-{N}-{guest-name-kebab}`, such as `episode-2-dana-reyes`.
+Pattern: `episode-{N}-{guest-name-kebab}`, such as `episode-2-tamsin-vell`.
 
 - All lowercase
 - Hyphens for spaces
@@ -80,9 +80,9 @@ guest_company: <Company>
 guest_linkedin: <URL>
 duration_minutes: <minutes>
 duration_seconds: <seconds>
-publication_date: YYYY-MM-DD
-youtube_url: <URL>
-youtube_id: <video ID>
+publication_date: YYYY-MM-DD   # TBC until /distribute
+youtube_url: <URL>             # TBC until /distribute
+youtube_id: <video ID>         # TBC until /distribute
 og_image: <permalink>/thumbnail.png
 description: <SEO meta description, about 155 chars>
 podcast: <show.slug>
@@ -130,7 +130,7 @@ podcast_episode_schema:
 
 ### 6. Update the episode README and report back
 
-Mark the episode page as done. Tell the user the file path, the slug, the expected URL (`site.base_url` plus the permalink), the page word count, and anything to verify, especially the ISO 8601 duration.
+Note in the episode README that the page is done. Tell the user the file path, the slug, the expected URL (`site.base_url` plus the permalink), the page word count, and anything to verify, especially the ISO 8601 duration.
 
 ## Voice and style
 

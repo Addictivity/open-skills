@@ -4,9 +4,9 @@
 
 ````markdown
 ---
-title: Episode 2 - Dana Reyes - Short-form Clips
+title: Episode 2 - Tamsin Vell - Short-form Clips
 episode: 2
-guest: Dana Reyes
+guest: Tamsin Vell
 ---
 
 # Episode 2 - Short-form Clips
@@ -32,9 +32,9 @@ guest: Dana Reyes
 > They rang on a Tuesday.
 
 **LinkedIn caption:**
-> They rang on a Tuesday. By the Friday, 60% of Fernhill's revenue had gone.
+> They rang on a Tuesday. By the Friday, 60% of Quillfen's revenue had gone.
 >
-> Dana Reyes on what she changed next.
+> Tamsin Vell on what she changed next.
 
 **On-screen text:**
 - 00:02 - 00:06: `They rang on. a Tuesday.` @Tuesday

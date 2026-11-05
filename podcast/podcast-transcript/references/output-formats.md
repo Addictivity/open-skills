@@ -12,21 +12,21 @@ Speaker-labelled and timestamped. Every later skill reads this one.
 
 ```markdown
 ---
-title: Episode 2 - Dana Reyes - Transcript
+title: Episode 2 - Tamsin Vell - Transcript
 date: 2026-05-05
 tags: [podcast, transcript, example-show]
 status: complete
 episode: 2
-guest: Dana Reyes
+guest: Tamsin Vell
 host: Sam Host
 duration_seconds: 1834
 word_count: 5421
-speakers: ["Sam Host", "Dana Reyes"]
+speakers: ["Sam Host", "Tamsin Vell"]
 ---
 
 [00:00] **Sam Host:** Welcome to the show. Today's guest roasts 40 tonnes of coffee a year...
 
-[00:42] **Dana Reyes:** Thanks for having me. So Fernhill started in a garage...
+[00:42] **Tamsin Vell:** Thanks for having me. So Quillfen started in a garage...
 ```
 
 Body format: `[MM:SS] **Speaker Name:** utterance text`, with a blank line between utterances. Timestamps become `HH:MM:SS` for episodes over an hour.
@@ -42,7 +42,7 @@ Timed sections from AssemblyAI's summarization, for YouTube descriptions and for
 
 ```
 00:00 Introduction and show format
-01:30 Dana on starting Fernhill in a garage
+01:30 Tamsin on starting Quillfen in a garage
 07:42 The first wholesale account
 ```
 
@@ -51,8 +51,8 @@ Timed sections from AssemblyAI's summarization, for YouTube descriptions and for
 ### 00:00 - Introduction and show format
 The host sets out the premise of the show and introduces the guest.
 
-### 01:30 - Dana on starting Fernhill in a garage
-Dana explains how the roastery began...
+### 01:30 - Tamsin on starting Quillfen in a garage
+Tamsin explains how the roastery began...
 ````
 
 The fenced block pastes straight into a YouTube description, where it becomes clickable chapters. `/youtube-description` shortens these headlines to 4 to 7 words.

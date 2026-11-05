@@ -58,7 +58,7 @@ Rules: no full stops, short words render best at 96px, and about 10 characters i
 ```bash
 python3 ~/.claude/skills/thumbnail-generate/scripts/generate.py \
   --episode-folder "<episode-folder>" \
-  --guest-name "Dana Reyes" \
+  --guest-name "Tamsin Vell" \
   --hook "THE ROAST|_NOBODY|_WANTED|*TO BUY"
 ```
 
@@ -70,7 +70,7 @@ Show the PNG. Adjust `--guest-height`, `--guest-left` and `--guest-bottom` until
 
 ### 7. Update the episode README
 
-Mark the thumbnail as done.
+Note in the episode README that the thumbnail is done.
 
 ## Working in a design tool instead
 
@@ -91,4 +91,4 @@ If the show keeps its thumbnails in Figma or Canva, you can duplicate the newest
 
 ## Next
 
-`/distribute` sets the thumbnail on the uploaded video with `youtube-thumbnail.py`.
+`/shorts`. Later, `/distribute` sets the thumbnail on the uploaded video with `youtube-thumbnail.py`.

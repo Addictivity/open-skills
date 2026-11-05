@@ -8,6 +8,11 @@
 # and pass it through for other languages.
 
 set -eu
+HYPERFRAMES="${HYPERFRAMES:-hyperframes@0.9.16}"  # the version this pack was tested with
+
+command -v ffmpeg >/dev/null || { echo "Error: ffmpeg not found. Install it first (on a Mac: brew install ffmpeg)." >&2; exit 1; }
+command -v npx >/dev/null || { echo "Error: npx not found. HyperFrames needs Node 22 or later: https://nodejs.org" >&2; exit 1; }
+[ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] || { echo "Error: HyperFrames needs Node 22 or later, you have $(node -v)." >&2; exit 1; }
 
 SHORTS_DIR="${1:?Usage: transcribe-clips.sh <path-to-shorts-dir> [--use-normalised]}"
 USE_NORM="${2:-}"
@@ -54,7 +59,7 @@ for clip in "${clips[@]}"; do
 
   # HyperFrames writes transcript.json beside the input in newer versions and into the
   # working directory in older ones, so check both.
-  (cd "$SHORTS_DIR" && npx --yes hyperframes transcribe "$clip" --model "$MODEL" 2>&1 | grep -E "(Transcribed|Error|error)" | tail -3) || true
+  log=$(cd "$SHORTS_DIR" && npx --yes "$HYPERFRAMES" transcribe "$clip" --model "$MODEL" 2>&1) || true
 
   produced=""
   for cand in "$(dirname "$clip")/transcript.json" "$SHORTS_DIR/transcript.json"; do
@@ -65,7 +70,8 @@ for clip in "${clips[@]}"; do
     mv "$produced" "$outpath"
     echo "    wrote $slug.json"
   else
-    echo "    FAILED to produce transcript.json for $filename"
+    echo "    FAILED to produce transcript.json for $filename. Last lines from HyperFrames:"
+    echo "$log" | tail -5 | sed 's/^/      /'
     failed=$((failed + 1))
   fi
 done

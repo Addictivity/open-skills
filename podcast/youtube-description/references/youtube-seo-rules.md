@@ -11,7 +11,7 @@ Click-through and watch time decide most of a video's reach, and the title and t
 The first 125 or so characters show before "Show more".
 
 - Get the guest's name and topic into the first 25 words.
-- Be specific: "Dana Reyes on replacing a wholesale account worth 60% of revenue" beats "a discussion with a coffee industry leader".
+- Be specific: "Tamsin Vell on replacing a wholesale account worth 60% of revenue" beats "a discussion with a coffee industry leader".
 - Save "welcome to another episode" for never.
 
 ## Keyword strategy

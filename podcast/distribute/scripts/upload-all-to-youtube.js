@@ -21,7 +21,7 @@ const { spawnSync } = require('child_process');
 const lib = require('./lib');
 
 const args = lib.parseArgs(process.argv.slice(2));
-const EP_DIR = args['episode-dir'] || args.e;
+const EP_DIR = lib.expandHome(args['episode-dir'] || args.e);
 if (!EP_DIR) lib.fail('Usage: node upload-all-to-youtube.js --episode-dir "/path/to/Episode N - Guest" [--privacy unlisted] [--episode-video master.mp4] [--dry-run]');
 
 const config = lib.loadConfig(args.config);
@@ -29,6 +29,10 @@ const yt = (config.publishing || {}).youtube || {};
 if (yt.enabled === false) lib.fail('publishing.youtube.enabled is false in the settings file.');
 
 const DRY_RUN = !!args['dry-run'];
+if ((config.show || {}).slug === 'example-show' && !DRY_RUN) {
+  lib.fail('the settings file still has the example show in it, and those words would go into your video descriptions. Fill it in first.');
+}
+if (!yt.channel_id) console.error('Warning: publishing.youtube.channel_id is empty, so the channel guard is off. Set it so a wrong channel pick stops after one clip.');
 const PRIVACY = args.privacy || yt.privacy || 'unlisted';
 const paths = config.paths || {};
 const CREDS = lib.expandHome(paths.google_client_secret || '~/.config/podcast-skills/youtube-client-secret.json');
@@ -93,7 +97,8 @@ for (const key of clipKeys) {
   upload(key, video, m.title, m.description, m.tags || []);
 }
 
-if (args['episode-video']) {
+const EPISODE_VIDEO = lib.expandHome(args['episode-video']);
+if (EPISODE_VIDEO) {
   if (uploads.episode) {
     console.log(`episode: already uploaded (${uploads.episode.url}), skipping`);
   } else {
@@ -102,8 +107,8 @@ if (args['episode-video']) {
       if (!fs.existsSync(p)) lib.fail(`${p} missing. Copy each chosen field from youtube-description.md first.`);
       return fs.readFileSync(p, 'utf8').trim();
     };
-    if (!fs.existsSync(args['episode-video'])) lib.fail(`episode video not found: ${args['episode-video']}`);
-    upload('episode', args['episode-video'], read('episode-title.txt'), read('episode-description.txt'),
+    if (!fs.existsSync(EPISODE_VIDEO)) lib.fail(`episode video not found: ${EPISODE_VIDEO}`);
+    upload('episode', EPISODE_VIDEO, read('episode-title.txt'), read('episode-description.txt'),
       read('episode-tags.txt').split(',').map(t => t.trim()).filter(Boolean), ['--full-episode']);
   }
 }

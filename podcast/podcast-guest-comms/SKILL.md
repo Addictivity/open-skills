@@ -21,9 +21,9 @@ Read the settings file first: `$PODCAST_CONFIG`, otherwise `~/.config/podcast-sk
 
 | Source | What you take |
 |--------|---------------|
-| Episode `README.md` | guest name, first name, company, `## Guest requests` (off-limits items, anything they asked for), recording date, status |
+| Episode `README.md` | guest name, first name, company, `## Guest requests` (off-limits items, anything they asked for), `recorded:` date, status |
 | `youtube-description.md` | the chosen title |
-| `distribute/youtube-uploads.json` | episode video ID, per-clip IDs and `publish_at` |
+| `distribute/youtube-uploads.json` | episode video ID, per-clip IDs, and `publish_at` for anything scheduled |
 | `distribute/linkedin-drafts.json` | the posting schedule, if LinkedIn is on (the first post date is when the episode must be public) |
 | `clips.md` | clip titles for the asset README |
 | The user's email, if connected | how long the guest has waited, what they asked, their tone, their address |
@@ -40,7 +40,7 @@ Short paragraphs, in the user's voice. Apply `voice` from the settings file.
 1. **Apology first if the wait was long.** Long means more than four weeks since recording, or the guest has chased. Own it plainly and thank them for their patience. No excuses.
 2. **The link.** The unlisted YouTube URL. Say it is unlisted, so only people with the link can watch.
 3. **What to check.** Two items at most: anything they would rather cut (reference any off-limits item from `## Guest requests` and confirm it was respected), and the title.
-4. **The plan and the deadline.** Publish date and reply-by date, with the clip cadence. State that silence means good to go, so the launch is not blocked.
+4. **The plan and the deadline.** Publish date and reply-by date, with the clip cadence. No file holds these two dates, so ask the user. State that silence means good to go, so the launch is not blocked.
 5. **What comes next for them.** The asset pack is coming, and they are welcome to share from their own page once tagged in the posts.
 6. **Close warm.** One line on their story, then `guest_comms.email_signoff`.
 

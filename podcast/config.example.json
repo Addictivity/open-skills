@@ -1,13 +1,12 @@
 {
-  "_comment": "Copy to ~/.config/podcast-skills/config.json and replace every value. API keys never go here: put them in the file named by paths.env_file. Scripts look for --config, then $PODCAST_CONFIG, then the path above.",
+  "_comment": "Copy to ~/.config/podcast-skills/config.json. Replace everything in show and publishing.youtube, and add your glossary. Other values work as they are: see podcast/README.md. API keys never go here: put them in the file named by paths.env_file. Scripts look for --config, then $PODCAST_CONFIG, then the path above.",
 
   "show": {
+    "_comment": "slug is the show's name in lowercase with dashes. publisher is the person or company behind the show, used in the episode page schema.",
     "name": "Example Show",
     "slug": "example-show",
-    "tagline": "Long conversations with people who run small coffee roasters.",
     "audience": "independent coffee shop owners",
     "host": "Sam Host",
-    "host_first_name": "Sam",
     "host_linkedin": "https://www.linkedin.com/in/your-handle/",
     "publisher": "Your Company",
     "publisher_url": "https://example.com",
@@ -27,20 +26,20 @@
 
   "glossary": {
     "_comment": "Wrong spelling on the left, right spelling on the right. Speech-to-text gets names wrong, so skills apply this everywhere.",
-    "Fernhil": "Fernhill"
+    "Quilfen": "Quillfen"
   },
 
   "brand": {
     "colours": {
-      "thumbnail_background": "#090909",
-      "thumbnail_strip": "#0A0915",
+      "thumbnail_background": "#141414",
+      "thumbnail_strip": "#2B2B2B",
       "thumbnail_highlight": "#2A9D8F",
       "thumbnail_text": "#FFFFFF",
-      "short_accent": "#F0E23A",
-      "short_main": "#F5EFE1",
-      "short_caption_future": "#B5B5B5",
+      "short_accent": "#D4D4D4",
+      "short_main": "#FFFFFF",
+      "short_caption_future": "#A8A8A8",
       "short_caption_read": "#FFFFFF",
-      "short_caption_pill": "#071647"
+      "short_caption_pill": "#2B2B2B"
     },
     "fonts": {
       "thumbnail": "Sora",
@@ -59,6 +58,7 @@
   },
 
   "paths": {
+    "_comment": "media_archive can be any folder, not only an external drive.",
     "episodes_root": "~/Podcast/Episodes",
     "media_archive": "/Volumes/YourDrive/Podcast",
     "env_file": "~/.config/podcast-skills/.env",
@@ -78,6 +78,7 @@
 
   "publishing": {
     "youtube": {
+      "_comment": "channel_id is the upload guard: see Setup in distribute/SKILL.md. category_id 22 is People & Blogs.",
       "enabled": true,
       "channel_id": "",
       "privacy": "unlisted",
@@ -101,7 +102,7 @@
       ]
     },
     "linkedin": {
-      "_comment": "mode: paste-pack writes captions for you to post by hand (no account needed). ghl pushes drafts to GoHighLevel. off skips LinkedIn.",
+      "_comment": "mode: paste-pack writes captions for you to post by hand (no account needed). ghl pushes drafts to GoHighLevel. off skips LinkedIn. account_name_match is only for ghl, when a location has several LinkedIn accounts.",
       "mode": "paste-pack",
       "post_days": ["Mon", "Thu"],
       "post_time": "14:00",

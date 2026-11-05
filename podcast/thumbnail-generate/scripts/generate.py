@@ -5,7 +5,7 @@ with a headless Chrome screenshot. No Python packages needed.
 
 Usage:
     generate.py --episode-folder "/path/to/Episode N - Guest" \\
-        --guest-name "Dana Reyes" \\
+        --guest-name "Tamsin Vell" \\
         --hook "THE ROAST|_NOBODY|_WANTED|*TO BUY" \\
         [--guest-cutout path.png] [--output path.png] [--force] [--dry-run] [--config path]
         [--guest-height 820] [--guest-left -70] [--guest-bottom -20]
@@ -152,8 +152,8 @@ def main():
     values = {
         "FONT_FACE": font_face(family, config),
         "FONT_FAMILY": family,
-        "COLOUR_BACKGROUND": colours.get("thumbnail_background", "#090909"),
-        "COLOUR_STRIP": colours.get("thumbnail_strip", "#0A0915"),
+        "COLOUR_BACKGROUND": colours.get("thumbnail_background", "#141414"),
+        "COLOUR_STRIP": colours.get("thumbnail_strip", "#2B2B2B"),
         "COLOUR_HIGHLIGHT": colours.get("thumbnail_highlight", "#2A9D8F"),
         "COLOUR_TEXT": colours.get("thumbnail_text", "#FFFFFF"),
         "GUEST_CUTOUT": cutout.resolve().as_uri(),

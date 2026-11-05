@@ -8,10 +8,10 @@ import argparse
 import mimetypes
 from pathlib import Path
 
+from youtube_auth import get_credentials
+
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-
-from youtube_auth import get_credentials
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 

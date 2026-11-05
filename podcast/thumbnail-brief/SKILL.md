@@ -136,7 +136,7 @@ Do not overwrite an existing `thumbnail-brief.md` without asking.
 
 ### 8. Update the episode README and report back
 
-Mark the thumbnail row as brief complete, either ready or blocked. Tell the user the file path, the recommended hook with a reason, whether assets are ready, and that `/thumbnail-generate` is next.
+Note in the episode README that the brief is done, and whether it is ready or blocked. Tell the user the file path, the recommended hook with a reason, whether assets are ready, and that `/thumbnail-generate` is next.
 
 ## Voice and style
 

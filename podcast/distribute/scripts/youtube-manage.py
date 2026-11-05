@@ -16,9 +16,9 @@ import argparse
 import json
 from pathlib import Path
 
-from googleapiclient.discovery import build
-
 from youtube_auth import get_credentials
+
+from googleapiclient.discovery import build
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 

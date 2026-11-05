@@ -1,6 +1,6 @@
 # YouTube description anatomy
 
-The eight-section structure. Order matters, because people read from the top. Examples use a made-up guest: Dana Reyes, founder of Fernhill Coffee, on a show for independent coffee shop owners.
+The eight-section structure. Order matters, because people read from the top. Examples use a made-up guest: Tamsin Vell, founder of Quillfen Coffee, on a show for independent coffee shop owners.
 
 ## Visibility regions
 
@@ -18,10 +18,10 @@ If the first two lines do not earn the click, nobody reads the rest. Front-load 
 **Pattern:** a specific tension, then why the audience cares.
 
 Good:
-> Most roasters chase bigger accounts. Dana Reyes lost her biggest one and built a better business from what was left. Here's what she changed.
+> Most roasters chase bigger accounts. Tamsin Vell lost her biggest one and built a better business from what was left. Here's what she changed.
 
 Too generic:
-> Dana Reyes, founder of Fernhill Coffee, joins the show to talk about coffee.
+> Tamsin Vell, founder of Quillfen Coffee, joins the show to talk about coffee.
 
 ## Section 2: episode summary
 
@@ -34,8 +34,8 @@ Too generic:
 **Must include:** specific stories with named entities, at least one number or date, and a mix of tactical advice and wider insight. Start each bullet with a verb or a question.
 
 Good:
-- How Dana replaced a single wholesale account worth 60% of revenue
-- The pricing change that stopped Fernhill losing money on its best seller
+- How Tamsin replaced a single wholesale account worth 60% of revenue
+- The pricing change that stopped Quillfen losing money on its best seller
 - Why she hires baristas for attitude and trains the rest
 
 Too vague:
@@ -56,7 +56,7 @@ Trim from the auto-generated headlines:
 
 | Raw headline | Trimmed |
 |---|---|
-| `Dana Reyes explains how she started Fernhill Coffee in a garage` | `Starting Fernhill in a garage` |
+| `Tamsin Vell explains how she started Quillfen Coffee in a garage` | `Starting Quillfen in a garage` |
 | `How did you replace the account you lost` | `Replacing the lost account` |
 
 ## Section 5: resources mentioned
@@ -70,7 +70,7 @@ CONNECT WITH {{GUEST FIRST NAME}}
 
 {{GUEST FULL NAME}}, {{ROLE}} at {{COMPANY}}
 LinkedIn: {{GUEST LINKEDIN URL}}
-{{COMPANY}}: {{COMPANY URL}}
+{{COMPANY}}: {{guest_company_url from the README}}
 ```
 
 Add a line per company if the guest runs more than one. If `guest_linkedin` is missing from the README, write `{{ADD GUEST LINKEDIN}}` and call it out in Notes.

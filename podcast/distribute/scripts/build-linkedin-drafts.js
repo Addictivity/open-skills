@@ -22,7 +22,7 @@ if (require.main === module) main();
 
 function main() {
   const args = lib.parseArgs(process.argv.slice(2));
-  const EPISODE_DIR = args['episode-dir'] || args.e;
+  const EPISODE_DIR = lib.expandHome(args['episode-dir'] || args.e);
   if (!EPISODE_DIR) lib.fail('Usage: node build-linkedin-drafts.js --episode-dir "/path/to/Episode N - Guest" [--start-date YYYY-MM-DD]');
 
   const config = lib.loadConfig(args.config);
@@ -134,6 +134,8 @@ function buildPastePack(drafts, meta, config, zone) {
     `# Episode ${meta.episode || '?'} ${meta.guest || ''}: LinkedIn paste pack`.trim(),
     '',
     `${drafts.length} posts. Times are ${zone}. Scheduling natively in LinkedIn means you can @mention people, which API routes often cannot do reliably.`,
+    '',
+    '**Wait for the guest to approve the episode before you schedule these.** A post scheduled on LinkedIn goes out by itself.',
     '',
     '## How to post each one',
     '',

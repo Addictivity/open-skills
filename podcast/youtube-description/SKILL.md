@@ -35,14 +35,14 @@ The episode folder must contain `transcript-clean.md` and `chapters.md`. If they
 
 | Source | What you extract |
 |--------|------------------|
-| Episode `README.md` | episode number, guest name, role, company, YouTube URL, status, producer notes |
+| Episode `README.md` | episode number, guest name, role, company, YouTube URL, status, any notes |
 | `pre-call-brief.md` | **the editorial angle**, the most important input if it exists. Producer notes capture the headline of the episode, and the intro holds the polished bio. |
 | `transcript-clean.md` | stories, numbers, quotes, named tools, companies and people |
 | `chapters.md` | the timestamp block, which you shorten in step 4 |
 | Settings file | voice rules, audience, the host CTA block, glossary |
 | `content-lessons.md` in `paths.episodes_root` | corrections from earlier episodes, if the file exists |
 
-Apply `glossary` right-column spellings everywhere, even where the transcript has it wrong.
+Apply the right-hand spellings from `glossary` everywhere, even where the transcript has it wrong.
 
 ### 3. Generate 5 title options
 
@@ -128,7 +128,7 @@ Keep the `## Tags` heading as written: `/distribute` reads the tags from that se
 
 ### 8. Update the episode README and report back
 
-Mark the description as done. Tell the user the file path, your recommended title with a one-sentence reason, and the items in Notes.
+Note in the episode README that the description is done. Tell the user the file path, your recommended title with a one-sentence reason, and the items in Notes. When the user picks a title, add `**Chosen title:** ...` at the top of `youtube-description.md`, because later skills read it from there.
 
 ## Voice and style
 
